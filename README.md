@@ -37,7 +37,14 @@ src/
 
 1. [Discord Developer Portal](https://discord.com/developers/applications)에서 봇 생성
 2. Bot 토큰 발급
-3. OAuth2 > URL Generator에서 `bot`, `applications.commands` 스코프로 초대 링크 생성 후 서버에 초대
+3. **Bot 탭 > Privileged Gateway Intents** 에서 아래 토글 활성화:
+   - **Server Members Intent** — 서버 멤버 이벤트 수신에 필요
+   - **Message Content Intent** — 메시지 내용 읽기에 필요
+4. 봇을 서버에 초대:
+   1. **OAuth2 > URL Generator** 이동
+   2. Scopes에서 `bot`, `applications.commands` 체크
+   3. Bot Permissions에서 `Send Messages` 체크
+   4. 생성된 URL을 브라우저에 붙여넣고 서버에 초대
 
 ### 설치 및 실행
 

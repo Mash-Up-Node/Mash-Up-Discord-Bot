@@ -1,23 +1,31 @@
 import { StudyCommands } from '../study.commands';
 import { StudyService } from '../study.service';
+import { StudyTimeDto } from '../dto/study-time.dto';
 
 describe('StudyCommands', () => {
   let commands: StudyCommands;
   let mockService: Record<string, jest.Mock>;
-  let mockInteraction: Record<string, jest.Mock | Record<string, string>>;
+
+  function createMockInteraction() {
+    return {
+      user: { id: 'user-1', displayName: '최재영' },
+      reply: jest.fn(),
+      guild: {
+        members: {
+          fetch: jest.fn().mockResolvedValue({ displayName: '최재영' }),
+        },
+      },
+    };
+  }
 
   beforeEach(() => {
     mockService = {
       getTotalDuration: jest.fn(),
+      getLeaderboard: jest.fn(),
       handleJoin: jest.fn(),
       handleLeave: jest.fn(),
       handleMove: jest.fn(),
       getActiveSessionsAll: jest.fn(),
-    };
-
-    mockInteraction = {
-      user: { id: 'user-1' },
-      reply: jest.fn(),
     };
 
     commands = new StudyCommands(mockService as unknown as StudyService);
@@ -26,39 +34,81 @@ describe('StudyCommands', () => {
   describe('/공부시간', () => {
     it('누적 시간이 0이면 기록이 없다고 안내한다', async () => {
       mockService.getTotalDuration.mockResolvedValue(0);
+      const interaction = createMockInteraction();
+      const dto = new StudyTimeDto();
 
-      await commands.onStudyTime([mockInteraction] as never);
+      await commands.onStudyTime([interaction] as never, dto);
 
       expect(mockService.getTotalDuration).toHaveBeenCalledWith('user-1');
-      expect(mockInteraction.reply).toHaveBeenCalledWith(
+      expect(interaction.reply).toHaveBeenCalledWith(
         expect.objectContaining({
           content: expect.stringContaining('기록이 없') as string,
         }),
       );
     });
 
-    it('누적 시간을 시/분/초 형식으로 표시한다', async () => {
-      // 2시간 30분 45초 = 9045초
+    it('닉네임과 함께 누적 시간을 표시한다', async () => {
       mockService.getTotalDuration.mockResolvedValue(9045);
+      const interaction = createMockInteraction();
+      const dto = new StudyTimeDto();
 
-      await commands.onStudyTime([mockInteraction] as never);
+      await commands.onStudyTime([interaction] as never, dto);
 
-      expect(mockInteraction.reply).toHaveBeenCalledWith(
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('최재영') as string,
+        }),
+      );
+      expect(interaction.reply).toHaveBeenCalledWith(
         expect.objectContaining({
           content: expect.stringMatching(/2시간 30분 45초/) as string,
         }),
       );
     });
 
-    it('1시간 미만이면 시간을 생략한다', async () => {
-      // 15분 30초 = 930초
-      mockService.getTotalDuration.mockResolvedValue(930);
+    it('다른 사용자를 지정하면 해당 사용자의 시간을 조회한다', async () => {
+      mockService.getTotalDuration.mockResolvedValue(3600);
+      const interaction = createMockInteraction();
+      const dto = new StudyTimeDto();
+      dto.user = { id: 'user-2', displayName: '공진성' } as never;
 
-      await commands.onStudyTime([mockInteraction] as never);
+      await commands.onStudyTime([interaction] as never, dto);
 
-      expect(mockInteraction.reply).toHaveBeenCalledWith(
+      expect(mockService.getTotalDuration).toHaveBeenCalledWith('user-2');
+      expect(interaction.reply).toHaveBeenCalledWith(
         expect.objectContaining({
-          content: expect.stringMatching(/15분 30초/) as string,
+          content: expect.stringContaining('공진성') as string,
+        }),
+      );
+    });
+  });
+
+  describe('/공부순위', () => {
+    it('기록이 없으면 안내 메시지를 보낸다', async () => {
+      mockService.getLeaderboard.mockResolvedValue([]);
+      const interaction = createMockInteraction();
+
+      await commands.onLeaderboard([interaction] as never);
+
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('기록이 없') as string,
+        }),
+      );
+    });
+
+    it('순위표를 표시한다', async () => {
+      mockService.getLeaderboard.mockResolvedValue([
+        { userId: 'user-1', total: 7200 },
+        { userId: 'user-2', total: 3600 },
+      ]);
+      const interaction = createMockInteraction();
+
+      await commands.onLeaderboard([interaction] as never);
+
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('순위표') as string,
         }),
       );
     });

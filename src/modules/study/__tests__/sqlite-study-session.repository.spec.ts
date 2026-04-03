@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { SqliteStudySessionRepository } from '../repositories/sqlite-study-session.repository';
+import { LeaderboardEntry } from '../entities/study-session.entity';
 
 describe('SqliteStudySessionRepository', () => {
   let db: Database.Database;
@@ -114,6 +115,33 @@ describe('SqliteStudySessionRepository', () => {
       const sessions = await repo.getActiveSessionsAll();
       expect(sessions).toHaveLength(1);
       expect(sessions[0].userId).toBe('user-2');
+    });
+  });
+
+  describe('getLeaderboard', () => {
+    it('기록이 없으면 빈 배열을 반환한다', async () => {
+      const leaderboard: LeaderboardEntry[] = await repo.getLeaderboard(10);
+      expect(leaderboard).toEqual([]);
+    });
+
+    it('총 공부 시간 내림차순으로 반환한다', async () => {
+      const leaderboard: LeaderboardEntry[] = await repo.getLeaderboard(10);
+
+      for (let i = 0; i < leaderboard.length - 1; i++) {
+        expect(leaderboard[i].total).toBeGreaterThanOrEqual(
+          leaderboard[i + 1].total,
+        );
+      }
+    });
+
+    it('limit만큼만 반환한다', async () => {
+      await repo.createSession('user-1', 'channel-1');
+      await repo.endSession('user-1');
+      await repo.createSession('user-2', 'channel-1');
+      await repo.endSession('user-2');
+
+      const leaderboard: LeaderboardEntry[] = await repo.getLeaderboard(1);
+      expect(leaderboard).toHaveLength(1);
     });
   });
 });

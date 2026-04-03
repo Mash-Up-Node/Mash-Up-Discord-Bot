@@ -29,6 +29,9 @@ describe('StudySessionRepository Interface', () => {
       getActiveSession: jest.fn().mockResolvedValue(mockSession),
       getTotalDuration: jest.fn().mockResolvedValue(7200),
       getActiveSessionsAll: jest.fn().mockResolvedValue([mockSession]),
+      getLeaderboard: jest
+        .fn()
+        .mockResolvedValue([{ userId: 'user-1', total: 7200 }]),
     };
 
     // createSession

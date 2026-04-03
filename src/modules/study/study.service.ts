@@ -1,5 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { StudySession } from './entities/study-session.entity';
+import {
+  LeaderboardEntry,
+  StudySession,
+} from './entities/study-session.entity';
 import {
   STUDY_SESSION_REPOSITORY,
   StudySessionRepository,
@@ -37,5 +40,9 @@ export class StudyService {
 
   async getActiveSessionsAll(): Promise<StudySession[]> {
     return this.repository.getActiveSessionsAll();
+  }
+
+  getLeaderboard(limit: number): Promise<LeaderboardEntry[]> {
+    return this.repository.getLeaderboard(limit);
   }
 }

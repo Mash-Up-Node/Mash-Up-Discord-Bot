@@ -23,6 +23,7 @@ describe('StudyService', () => {
       getActiveSession: jest.fn(),
       getTotalDuration: jest.fn(),
       getActiveSessionsAll: jest.fn(),
+      getLeaderboard: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -128,6 +129,18 @@ describe('StudyService', () => {
       const result = await service.getActiveSessionsAll();
 
       expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('getLeaderboard', () => {
+    it('순위표를 반환한다', async () => {
+      const leaderboardData = [{ userId: 'user-1', total: 7200 }];
+      mockRepo.getLeaderboard.mockResolvedValue(leaderboardData);
+
+      const result = await service.getLeaderboard(10);
+
+      expect(mockRepo.getLeaderboard).toHaveBeenCalledWith(10);
+      expect(result).toEqual(leaderboardData);
     });
   });
 });

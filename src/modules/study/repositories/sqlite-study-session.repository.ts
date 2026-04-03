@@ -1,6 +1,9 @@
 import { randomUUID } from 'crypto';
 import Database from 'better-sqlite3';
-import { StudySession } from '../entities/study-session.entity';
+import {
+  LeaderboardEntry,
+  StudySession,
+} from '../entities/study-session.entity';
 import { StudySessionRepository } from '../interfaces/study-session.repository';
 
 interface StudySessionRow {
@@ -109,5 +112,17 @@ export class SqliteStudySessionRepository implements StudySessionRepository {
       .all() as StudySessionRow[];
 
     return Promise.resolve(rows.map((row) => this.toEntity(row)));
+  }
+
+  getLeaderboard(limit: number): Promise<LeaderboardEntry[]> {
+    const rows = this.db
+      .prepare(
+        'SELECT user_id, COALESCE(SUM(duration), 0) as total FROM study_sessions WHERE duration IS NOT NULL GROUP BY user_id ORDER BY total DESC LIMIT ?',
+      )
+      .all(limit) as { user_id: string; total: number }[];
+
+    return Promise.resolve(
+      rows.map((row) => ({ userId: row.user_id, total: row.total })),
+    );
   }
 }

@@ -1,4 +1,7 @@
-import { StudySession } from '../entities/study-session.entity';
+import {
+  LeaderboardEntry,
+  StudySession,
+} from '../entities/study-session.entity';
 
 export const STUDY_SESSION_REPOSITORY = Symbol('STUDY_SESSION_REPOSITORY');
 
@@ -8,4 +11,5 @@ export interface StudySessionRepository {
   getActiveSession(userId: string): Promise<StudySession | null>;
   getTotalDuration(userId: string): Promise<number>;
   getActiveSessionsAll(): Promise<StudySession[]>;
+  getLeaderboard(limit: number): Promise<LeaderboardEntry[]>;
 }

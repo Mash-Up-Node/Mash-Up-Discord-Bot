@@ -55,7 +55,7 @@ describe('StudyListener', () => {
         parentId: CATEGORY_ID,
       });
 
-      await listener.onVoiceStateUpdate(oldState, newState);
+      await listener.onVoiceStateUpdate([oldState, newState] as never);
 
       expect(mockService.handleJoin).toHaveBeenCalledWith('user-1', 'voice-1');
     });
@@ -67,7 +67,7 @@ describe('StudyListener', () => {
       });
       const newState = createMockVoiceState({ channelId: null });
 
-      await listener.onVoiceStateUpdate(oldState, newState);
+      await listener.onVoiceStateUpdate([oldState, newState] as never);
 
       expect(mockService.handleLeave).toHaveBeenCalledWith('user-1');
     });
@@ -82,7 +82,7 @@ describe('StudyListener', () => {
         parentId: CATEGORY_ID,
       });
 
-      await listener.onVoiceStateUpdate(oldState, newState);
+      await listener.onVoiceStateUpdate([oldState, newState] as never);
 
       expect(mockService.handleMove).toHaveBeenCalledWith('user-1', 'voice-2');
     });
@@ -94,7 +94,7 @@ describe('StudyListener', () => {
         parentId: 'other-category',
       });
 
-      await listener.onVoiceStateUpdate(oldState, newState);
+      await listener.onVoiceStateUpdate([oldState, newState] as never);
 
       expect(mockService.handleJoin).not.toHaveBeenCalled();
     });
@@ -109,7 +109,7 @@ describe('StudyListener', () => {
         parentId: 'other-category',
       });
 
-      await listener.onVoiceStateUpdate(oldState, newState);
+      await listener.onVoiceStateUpdate([oldState, newState] as never);
 
       expect(mockService.handleLeave).toHaveBeenCalledWith('user-1');
     });
@@ -124,7 +124,7 @@ describe('StudyListener', () => {
         parentId: CATEGORY_ID,
       });
 
-      await listener.onVoiceStateUpdate(oldState, newState);
+      await listener.onVoiceStateUpdate([oldState, newState] as never);
 
       expect(mockService.handleJoin).toHaveBeenCalledWith('user-1', 'voice-1');
     });

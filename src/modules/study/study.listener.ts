@@ -22,8 +22,7 @@ export class StudyListener {
 
   @On('voiceStateUpdate')
   async onVoiceStateUpdate(
-    @Context() oldState: VoiceState,
-    newState: VoiceState,
+    @Context() [oldState, newState]: [VoiceState, VoiceState],
   ): Promise<void> {
     const userId = (newState.member ?? oldState.member)?.id;
     if (!userId) return;

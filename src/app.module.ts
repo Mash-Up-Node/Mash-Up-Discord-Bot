@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { NecordModule } from 'necord';
 import { IntentsBitField } from 'discord.js';
 import { PingModule } from './modules/ping/ping.module';
+import { StudyModule } from './modules/study/study.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PingModule } from './modules/ping/ping.module';
       }),
     }),
     PingModule,
+    StudyModule,
   ],
 })
 export class AppModule {}

@@ -9,16 +9,24 @@ Mash-Up 커뮤니티의 디스코드를 활성화하기 위한 봇 프로젝트�
 - **Discord.js** — Discord API 클라이언트
 - **Supabase** — 데이터베이스 (추후 연동 예정)
 
+## 기능
+
+| 기능 | 커맨드 | 설명 | 문서 |
+|------|--------|------|------|
+| Ping | `/ping` | 봇 동작 확인 | - |
+| 공부시간 측정 | `/공부시간` | 음성채널 입장/퇴장 시간 자동 기록 및 누적 시간 조회 | [상세 문서](docs/study-module.md) |
+| 공부순위 | `/공부순위` | 공부 시간 상위 10명 순위표 | [상세 문서](docs/study-module.md) |
+
 ## 프로젝트 구조
 
 ```
 src/
 ├── app.module.ts            # 루트 모듈 (Necord 설정, 각 기능 모듈 import)
 ├── main.ts                  # 엔트리포인트
+├── constants/               # 상수 정의
 └── modules/                 # 기능별 모듈 디렉토리
-    └── ping/                # 예시: /ping 슬래시 커맨드
-        ├── ping.module.ts
-        └── ping.commands.ts
+    ├── ping/                # /ping 슬래시 커맨드
+    └── study/               # 공부방 시간 측정
 ```
 
 각 기능은 `src/modules/{기능명}/` 폴더에 NestJS 모듈로 독립 개발합니다.

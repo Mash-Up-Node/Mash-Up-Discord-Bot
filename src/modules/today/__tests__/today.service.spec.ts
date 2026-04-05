@@ -1,5 +1,8 @@
 import { TodayService } from '../today.service';
 
+const originalFetch = global.fetch;
+const runLiveFortuneTest = process.env.RUN_LIVE_FORTUNE_TEST === '1';
+
 describe('TodayService', () => {
   let service: TodayService;
   let fetchMock: jest.Mock;
@@ -122,4 +125,49 @@ describe('TodayService', () => {
       '오늘 날씨 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.',
     );
   });
+
+  it('운세 입력을 파싱해 네이버 운세를 반환한다', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      text: () =>
+        Promise.resolve(
+          'fortuneCallback({ "flick" : ["<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>일석삼조<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.05<\\/span><p>좋은 일이 겹쳐 들어오는 날입니다.<\\/p><\\/dd><\\/dl>"] });',
+        ),
+    });
+
+    const result = await service.getTodayFortune('남자,2025-05-18');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      keyword: '일석삼조',
+      date: '2026.04.05',
+      summary: '좋은 일이 겹쳐 들어오는 날입니다.',
+      gender: '남자',
+      birthDate: '2025-05-18',
+    });
+  });
+
+  it('운세 입력 형식이 잘못되면 안내 메시지를 던진다', async () => {
+    await expect(service.getTodayFortune('남자 2025-05-18')).rejects.toThrow(
+      '운세 형식은 "남자,2025-05-18" 입니다.',
+    );
+  });
+
+  const liveTest = runLiveFortuneTest ? it : it.skip;
+
+  liveTest(
+    '실제 네이버 API 응답을 받아 운세를 파싱한다',
+    async () => {
+      global.fetch = originalFetch;
+
+      const result = await service.getTodayFortune('남자,2025-05-18');
+
+      expect(result.gender).toBe('남자');
+      expect(result.birthDate).toBe('2025-05-18');
+      expect(result.keyword.length).toBeGreaterThan(0);
+      expect(result.date).toMatch(/^\d{4}\.\d{2}\.\d{2}$/);
+      expect(result.summary.length).toBeGreaterThan(20);
+    },
+    15000,
+  );
 });

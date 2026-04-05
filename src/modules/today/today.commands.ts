@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Context, Options, SlashCommand, SlashCommandContext } from 'necord';
 import { TodayQueryDto } from './dto/today-query.dto';
 import { TodayService } from './today.service';
-import { formatTodaySummary } from './utils/today-formatters';
+import {
+  formatTodayFortune,
+  formatTodaySummary,
+} from './utils/today-formatters';
 
 const DEFAULT_LOCATION = '서울';
 
@@ -18,9 +21,14 @@ export class TodayCommands {
     @Context() [interaction]: SlashCommandContext,
     @Options() dto: TodayQueryDto,
   ): Promise<void> {
-    const location = dto.location?.trim() || DEFAULT_LOCATION;
-
     try {
+      if (dto.fortune?.trim()) {
+        const fortune = await this.todayService.getTodayFortune(dto.fortune);
+        await interaction.reply({ content: formatTodayFortune(fortune) });
+        return;
+      }
+
+      const location = dto.location?.trim() || DEFAULT_LOCATION;
       const summary = await this.todayService.getTodaySummary(location);
       await interaction.reply({ content: formatTodaySummary(summary) });
     } catch (error) {

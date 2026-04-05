@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { TodaySummary } from './entities/today-summary.entity';
+import { TodayFortune, TodaySummary } from './entities/today-summary.entity';
 
 interface GeocodingResult {
   name: string;
@@ -32,6 +32,10 @@ interface AirQualityResponse {
   };
 }
 
+interface NaverFortuneResponse {
+  flick?: string[];
+}
+
 @Injectable()
 export class TodayService {
   private readonly geocodingEndpoint =
@@ -39,6 +43,8 @@ export class TodayService {
   private readonly forecastEndpoint = 'https://api.open-meteo.com/v1/forecast';
   private readonly airQualityEndpoint =
     'https://air-quality-api.open-meteo.com/v1/air-quality';
+  private readonly naverFortuneEndpoint =
+    'https://ts-proxy.naver.com/content/apirender.nhn';
 
   async getTodaySummary(location: string): Promise<TodaySummary> {
     const resolvedLocation = await this.resolveLocation(location);
@@ -80,6 +86,45 @@ export class TodayService {
     } catch {
       throw new Error(
         '오늘 날씨 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.',
+      );
+    }
+  }
+
+  async getTodayFortune(rawInput: string): Promise<TodayFortune> {
+    const parsedInput = this.parseFortuneInput(rawInput);
+    const url = new URL(this.naverFortuneEndpoint);
+    url.searchParams.set('where', 'nexearch');
+    url.searchParams.set('pkid', '387');
+    url.searchParams.set('_callback', 'fortuneCallback');
+    url.searchParams.set('q', '생년월일 운세');
+    url.searchParams.set('u1', parsedInput.genderCode);
+    url.searchParams.set('u2', parsedInput.birthDateCompact);
+    url.searchParams.set('u3', 'solar');
+
+    try {
+      const response = await this.fetchText(url);
+      const payload = this.parseJsonp<NaverFortuneResponse>(response);
+      const html = payload.flick?.[0];
+
+      if (!html) {
+        throw new Error('Missing fortune payload');
+      }
+
+      return this.extractFortune(
+        html,
+        parsedInput.genderLabel,
+        parsedInput.birthDate,
+      );
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('형식은') || error.message.includes('성별은'))
+      ) {
+        throw error;
+      }
+
+      throw new Error(
+        '오늘 운세 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.',
       );
     }
   }
@@ -152,6 +197,112 @@ export class TodayService {
     }
 
     return (await response.json()) as T;
+  }
+
+  private async fetchText(url: URL): Promise<string> {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Naver request failed: ${response.status}`);
+    }
+
+    return response.text();
+  }
+
+  private parseFortuneInput(rawInput: string): {
+    genderCode: 'm' | 'f';
+    genderLabel: '남자' | '여자';
+    birthDate: string;
+    birthDateCompact: string;
+  } {
+    const [rawGender, rawBirthDate] = rawInput
+      .split(',')
+      .map((value) => value.trim());
+
+    if (!rawGender || !rawBirthDate) {
+      throw new Error('운세 형식은 "남자,2025-05-18" 입니다.');
+    }
+
+    const normalizedGender = rawGender.toLowerCase();
+    const genderMap = new Map<
+      string,
+      { code: 'm' | 'f'; label: '남자' | '여자' }
+    >([
+      ['남자', { code: 'm', label: '남자' }],
+      ['남', { code: 'm', label: '남자' }],
+      ['m', { code: 'm', label: '남자' }],
+      ['male', { code: 'm', label: '남자' }],
+      ['여자', { code: 'f', label: '여자' }],
+      ['여', { code: 'f', label: '여자' }],
+      ['f', { code: 'f', label: '여자' }],
+      ['female', { code: 'f', label: '여자' }],
+    ]);
+    const gender = genderMap.get(normalizedGender);
+
+    if (!gender) {
+      throw new Error('성별은 남자 또는 여자로 입력해주세요.');
+    }
+
+    const birthDateCompact = rawBirthDate.replace(/-/g, '');
+
+    if (!/^\d{8}$/.test(birthDateCompact)) {
+      throw new Error('생년월일 형식은 YYYY-MM-DD 입니다.');
+    }
+
+    return {
+      genderCode: gender.code,
+      genderLabel: gender.label,
+      birthDate: `${birthDateCompact.slice(0, 4)}-${birthDateCompact.slice(4, 6)}-${birthDateCompact.slice(6, 8)}`,
+      birthDateCompact,
+    };
+  }
+
+  private parseJsonp<T>(responseText: string): T {
+    const match = responseText.match(/^[^(]+\(([\s\S]*)\);\s*$/);
+
+    if (!match) {
+      throw new Error('Invalid JSONP response');
+    }
+
+    return JSON.parse(match[1]) as T;
+  }
+
+  private extractFortune(
+    html: string,
+    gender: '남자' | '여자',
+    birthDate: string,
+  ): TodayFortune {
+    const keywordMatch = html.match(
+      /<strong>운세의 총운은\s*<b>(.*?)<\/b>\s*입니다<\/strong>/,
+    );
+    const dateMatch = html.match(/<span class="result_date">(.*?)<\/span>/);
+    const summaryMatch = html.match(
+      /<dt class="blind">총운<\/dt>\s*<dd>[\s\S]*?<p>([\s\S]*?)<\/p>/,
+    );
+
+    if (!keywordMatch || !dateMatch || !summaryMatch) {
+      throw new Error('Failed to parse fortune HTML');
+    }
+
+    return {
+      keyword: this.stripHtml(keywordMatch[1]),
+      date: this.stripHtml(dateMatch[1]),
+      summary: this.stripHtml(summaryMatch[1]),
+      gender,
+      birthDate,
+    };
+  }
+
+  private stripHtml(input: string): string {
+    return input
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   private formatLocationName(location: GeocodingResult): string {

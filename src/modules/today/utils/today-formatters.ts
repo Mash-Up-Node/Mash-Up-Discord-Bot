@@ -1,4 +1,4 @@
-import { TodaySummary } from '../entities/today-summary.entity';
+import { TodayFortune, TodaySummary } from '../entities/today-summary.entity';
 
 export function formatWeatherCode(weatherCode: number, isDay: boolean): string {
   switch (weatherCode) {
@@ -63,5 +63,15 @@ export function formatTodaySummary(summary: TodaySummary): string {
     `초미세먼지(PM2.5): ${formatNumber(summary.pm2_5)}μg/m³`,
     `대기질 지수(European AQI): ${formatNumber(summary.europeanAqi)}`,
     `시간대: ${summary.timezone}`,
+  ].join('\n');
+}
+
+export function formatTodayFortune(fortune: TodayFortune): string {
+  return [
+    `**오늘의 운세**`,
+    `입력: ${fortune.gender} / ${fortune.birthDate}`,
+    `총운 키워드: ${fortune.keyword}`,
+    `기준일: ${fortune.date}`,
+    `총운: ${fortune.summary}`,
   ].join('\n');
 }

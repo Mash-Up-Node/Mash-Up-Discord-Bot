@@ -77,6 +77,62 @@ describe('TodayService', () => {
     });
   });
 
+  it('서울 한글 입력이면 영문 별칭으로 재조회한다', async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ results: [] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            results: [
+              {
+                name: '서울특별시',
+                admin1: '서울특별시',
+                country: '대한민국',
+                latitude: 37.566,
+                longitude: 126.9784,
+                timezone: 'Asia/Seoul',
+              },
+            ],
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            current: {
+              temperature_2m: 17.2,
+              apparent_temperature: 16.4,
+              weather_code: 1,
+              is_day: 1,
+              wind_speed_10m: 11.3,
+            },
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            current: {
+              pm10: 28.5,
+              pm2_5: 14.2,
+              european_aqi: 32,
+            },
+          }),
+      });
+
+    const result = await service.getTodaySummary('서울');
+    const calls = fetchMock.mock.calls as Array<[URL]>;
+
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(calls[0][0].toString()).toContain('name=%EC%84%9C%EC%9A%B8');
+    expect(calls[1][0].toString()).toContain('name=Seoul');
+    expect(result.locationName).toBe('서울특별시, 대한민국');
+  });
+
   it('위치를 찾지 못하면 안내 메시지를 던진다', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,

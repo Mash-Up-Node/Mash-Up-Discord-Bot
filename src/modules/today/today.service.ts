@@ -36,6 +36,18 @@ interface NaverFortuneResponse {
   flick?: string[];
 }
 
+const LOCATION_ALIASES = new Map<string, string>([
+  ['서울', 'Seoul'],
+  ['부산', 'Busan'],
+  ['대구', 'Daegu'],
+  ['인천', 'Incheon'],
+  ['광주', 'Gwangju'],
+  ['대전', 'Daejeon'],
+  ['울산', 'Ulsan'],
+  ['세종', 'Sejong'],
+  ['제주', 'Jeju City'],
+]);
+
 @Injectable()
 export class TodayService {
   private readonly geocodingEndpoint =
@@ -141,14 +153,10 @@ export class TodayService {
   }
 
   private async resolveLocation(location: string): Promise<GeocodingResult> {
-    const url = new URL(this.geocodingEndpoint);
-    url.searchParams.set('name', location);
-    url.searchParams.set('count', '1');
-    url.searchParams.set('language', 'ko');
-
     try {
-      const response = await this.fetchJson<GeocodingResponse>(url);
-      const result = response.results?.[0];
+      const result =
+        (await this.searchLocation(location)) ??
+        (await this.searchLocation(LOCATION_ALIASES.get(location) ?? ''));
 
       if (!result) {
         throw new Error(`${location} 지역을 찾지 못했습니다.`);
@@ -167,6 +175,22 @@ export class TodayService {
         '오늘 날씨 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.',
       );
     }
+  }
+
+  private async searchLocation(
+    locationQuery: string,
+  ): Promise<GeocodingResult | null> {
+    if (!locationQuery) {
+      return null;
+    }
+
+    const url = new URL(this.geocodingEndpoint);
+    url.searchParams.set('name', locationQuery);
+    url.searchParams.set('count', '1');
+    url.searchParams.set('language', 'ko');
+
+    const response = await this.fetchJson<GeocodingResponse>(url);
+    return response.results?.[0] ?? null;
   }
 
   private createForecastUrl(

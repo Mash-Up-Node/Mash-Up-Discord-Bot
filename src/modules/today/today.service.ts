@@ -91,12 +91,23 @@ export class TodayService {
   }
 
   async getTodayFortune(rawInput: string): Promise<TodayFortune> {
+    return this.getFortune(rawInput, '생년월일 운세');
+  }
+
+  async getTomorrowFortune(rawInput: string): Promise<TodayFortune> {
+    return this.getFortune(rawInput, '생년월일 내일 운세');
+  }
+
+  private async getFortune(
+    rawInput: string,
+    query: '생년월일 운세' | '생년월일 내일 운세',
+  ): Promise<TodayFortune> {
     const parsedInput = this.parseFortuneInput(rawInput);
     const url = new URL(this.naverFortuneEndpoint);
     url.searchParams.set('where', 'nexearch');
     url.searchParams.set('pkid', '387');
     url.searchParams.set('_callback', 'fortuneCallback');
-    url.searchParams.set('q', '생년월일 운세');
+    url.searchParams.set('q', query);
     url.searchParams.set('u1', parsedInput.genderCode);
     url.searchParams.set('u2', parsedInput.birthDateCompact);
     url.searchParams.set('u3', 'solar');
@@ -104,7 +115,7 @@ export class TodayService {
     try {
       const response = await this.fetchText(url);
       const payload = this.parseJsonp<NaverFortuneResponse>(response);
-      const html = payload.flick?.[0];
+      const html = this.selectFortuneHtml(payload, query);
 
       if (!html) {
         throw new Error('Missing fortune payload');
@@ -124,7 +135,7 @@ export class TodayService {
       }
 
       throw new Error(
-        '오늘 운세 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.',
+        `${query === '생년월일 내일 운세' ? '내일' : '오늘'} 운세 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.`,
       );
     }
   }
@@ -265,6 +276,19 @@ export class TodayService {
     }
 
     return JSON.parse(match[1]) as T;
+  }
+
+  private selectFortuneHtml(
+    payload: NaverFortuneResponse,
+    query: '생년월일 운세' | '생년월일 내일 운세',
+  ): string | undefined {
+    const panels = payload.flick ?? [];
+
+    if (query === '생년월일 내일 운세') {
+      return panels[1] ?? panels[0];
+    }
+
+    return panels[0];
   }
 
   private extractFortune(

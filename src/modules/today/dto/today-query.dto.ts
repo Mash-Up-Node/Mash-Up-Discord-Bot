@@ -14,4 +14,11 @@ export class TodayQueryDto {
     required: false,
   })
   fortune?: string;
+
+  @StringOption({
+    name: '내일운세',
+    description: '형식: 남자,2025-05-18',
+    required: false,
+  })
+  tomorrowFortune?: string;
 }

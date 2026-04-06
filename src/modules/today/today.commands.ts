@@ -22,6 +22,16 @@ export class TodayCommands {
     @Options() dto: TodayQueryDto,
   ): Promise<void> {
     try {
+      if (dto.tomorrowFortune?.trim()) {
+        const fortune = await this.todayService.getTomorrowFortune(
+          dto.tomorrowFortune,
+        );
+        await interaction.reply({
+          content: formatTodayFortune(fortune, '내일의 운세'),
+        });
+        return;
+      }
+
       if (dto.fortune?.trim()) {
         const fortune = await this.todayService.getTodayFortune(dto.fortune);
         await interaction.reply({ content: formatTodayFortune(fortune) });

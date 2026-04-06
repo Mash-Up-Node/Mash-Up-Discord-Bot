@@ -16,6 +16,7 @@ describe('TodayCommands', () => {
     mockService = {
       getTodaySummary: jest.fn(),
       getTodayFortune: jest.fn(),
+      getTomorrowFortune: jest.fn(),
     };
 
     commands = new TodayCommands(mockService as unknown as TodayService);
@@ -103,6 +104,33 @@ describe('TodayCommands', () => {
     expect(interaction.reply).toHaveBeenCalledWith(
       expect.objectContaining({
         content: expect.stringContaining('오늘의 운세') as string,
+      }),
+    );
+  });
+
+  it('내일운세 옵션이 있으면 내일 운세 조회를 우선한다', async () => {
+    mockService.getTomorrowFortune.mockResolvedValue({
+      keyword: '순망치한',
+      date: '2026.04.06',
+      summary: '말과 행동이 일치하도록 노력할 필요가 있는 날입니다.',
+      gender: '남자',
+      birthDate: '2025-05-18',
+    });
+    const interaction = createMockInteraction();
+    const dto = new TodayQueryDto();
+    dto.tomorrowFortune = '남자,2025-05-18';
+    dto.fortune = '남자,2025-05-18';
+
+    await commands.onToday([interaction] as never, dto);
+
+    expect(mockService.getTomorrowFortune).toHaveBeenCalledWith(
+      '남자,2025-05-18',
+    );
+    expect(mockService.getTodayFortune).not.toHaveBeenCalled();
+    expect(mockService.getTodaySummary).not.toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining('내일의 운세') as string,
       }),
     );
   });

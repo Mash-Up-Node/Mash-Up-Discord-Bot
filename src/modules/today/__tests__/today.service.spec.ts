@@ -131,7 +131,7 @@ describe('TodayService', () => {
       ok: true,
       text: () =>
         Promise.resolve(
-          'fortuneCallback({ "flick" : ["<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>일석삼조<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.05<\\/span><p>좋은 일이 겹쳐 들어오는 날입니다.<\\/p><\\/dd><\\/dl>"] });',
+          'fortuneCallback({ "flick" : ["<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>일석삼조<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.05<\\/span><p>좋은 일이 겹쳐 들어오는 날입니다.<\\/p><\\/dd><\\/dl>", "<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>순망치한<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.06<\\/span><p>말과 행동이 일치하도록 노력할 필요가 있는 날입니다.<\\/p><\\/dd><\\/dl>"] });',
         ),
     });
 
@@ -142,6 +142,27 @@ describe('TodayService', () => {
       keyword: '일석삼조',
       date: '2026.04.05',
       summary: '좋은 일이 겹쳐 들어오는 날입니다.',
+      gender: '남자',
+      birthDate: '2025-05-18',
+    });
+  });
+
+  it('내일 운세 입력을 파싱해 네이버 운세를 반환한다', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      text: () =>
+        Promise.resolve(
+          'fortuneCallback({ "flick" : ["<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>일석삼조<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.05<\\/span><p>좋은 일이 겹쳐 들어오는 날입니다.<\\/p><\\/dd><\\/dl>", "<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>순망치한<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.06<\\/span><p>말과 행동이 일치하도록 노력할 필요가 있는 날입니다.<\\/p><\\/dd><\\/dl>"] });',
+        ),
+    });
+
+    const result = await service.getTomorrowFortune('남자,2025-05-18');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      keyword: '순망치한',
+      date: '2026.04.06',
+      summary: '말과 행동이 일치하도록 노력할 필요가 있는 날입니다.',
       gender: '남자',
       birthDate: '2025-05-18',
     });
@@ -161,6 +182,22 @@ describe('TodayService', () => {
       global.fetch = originalFetch;
 
       const result = await service.getTodayFortune('남자,2025-05-18');
+
+      expect(result.gender).toBe('남자');
+      expect(result.birthDate).toBe('2025-05-18');
+      expect(result.keyword.length).toBeGreaterThan(0);
+      expect(result.date).toMatch(/^\d{4}\.\d{2}\.\d{2}$/);
+      expect(result.summary.length).toBeGreaterThan(20);
+    },
+    15000,
+  );
+
+  liveTest(
+    '실제 네이버 API 응답을 받아 내일 운세를 파싱한다',
+    async () => {
+      global.fetch = originalFetch;
+
+      const result = await service.getTomorrowFortune('남자,2025-05-18');
 
       expect(result.gender).toBe('남자');
       expect(result.birthDate).toBe('2025-05-18');

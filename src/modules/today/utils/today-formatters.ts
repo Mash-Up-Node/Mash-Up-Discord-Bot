@@ -66,9 +66,12 @@ export function formatTodaySummary(summary: TodaySummary): string {
   ].join('\n');
 }
 
-export function formatTodayFortune(fortune: TodayFortune): string {
+export function formatTodayFortune(
+  fortune: TodayFortune,
+  title = '오늘의 운세',
+): string {
   return [
-    `**오늘의 운세**`,
+    `**${title}**`,
     `입력: ${fortune.gender} / ${fortune.birthDate}`,
     `총운 키워드: ${fortune.keyword}`,
     `기준일: ${fortune.date}`,

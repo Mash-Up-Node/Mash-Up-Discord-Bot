@@ -1,4 +1,4 @@
-import { supabaseProvider } from '../supabase.provider';
+import { supabaseProvider } from '../providers/supabase.provider';
 import { SUPABASE_CLIENT } from '../database.constants';
 
 describe('supabaseProvider', () => {

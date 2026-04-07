@@ -5,8 +5,8 @@ import {
   STUDY_SESSION_REPOSITORY,
   StudySessionRepository,
 } from '../../modules/study/interfaces/study-session.repository';
-import { SqliteStudySessionRepository } from '../../modules/study/repositories/sqlite-study-session.repository';
-import { SupabaseStudySessionRepository } from '../../modules/study/repositories/supabase-study-session.repository';
+import { SqliteStudySessionRepository } from '../repositories/sqlite-study-session.repository';
+import { SupabaseStudySessionRepository } from '../repositories/supabase-study-session.repository';
 
 describe('DatabaseModule', () => {
   afterEach(() => {

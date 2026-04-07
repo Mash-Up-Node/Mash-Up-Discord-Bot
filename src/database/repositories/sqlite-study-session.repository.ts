@@ -3,8 +3,8 @@ import Database from 'better-sqlite3';
 import {
   LeaderboardEntry,
   StudySession,
-} from '../entities/study-session.entity';
-import { StudySessionRepository } from '../interfaces/study-session.repository';
+} from '../../modules/study/entities/study-session.entity';
+import { StudySessionRepository } from '../../modules/study/interfaces/study-session.repository';
 
 interface StudySessionRow {
   id: string;

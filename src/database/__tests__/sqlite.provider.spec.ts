@@ -1,4 +1,4 @@
-import { sqliteProvider } from '../sqlite.provider';
+import { sqliteProvider } from '../providers/sqlite.provider';
 import { SQLITE_DATABASE } from '../database.constants';
 
 describe('sqliteProvider', () => {

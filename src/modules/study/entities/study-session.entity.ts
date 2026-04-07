@@ -5,19 +5,19 @@ export class StudySessionEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'varchar' })
   userId!: string;
 
-  @Column({ name: 'channel_id' })
+  @Column({ name: 'channel_id', type: 'varchar' })
   channelId!: string;
 
-  @Column({ name: 'joined_at' })
+  @Column({ name: 'joined_at', type: 'datetime' })
   joinedAt!: Date;
 
-  @Column({ name: 'left_at', nullable: true })
+  @Column({ name: 'left_at', type: 'datetime', nullable: true })
   leftAt!: Date | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'integer', nullable: true })
   duration!: number | null; // 초 단위
 }
 

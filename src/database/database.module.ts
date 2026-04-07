@@ -1,29 +1,28 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { SQLITE_DATABASE, SUPABASE_CLIENT } from './database.constants';
-import { sqliteProvider } from './providers/sqlite.provider';
-import { supabaseProvider } from './providers/supabase.provider';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { StudySessionEntity } from '../modules/study/entities/study-session.entity';
 import { DATABASE_ERRORS } from '../constants/error-messages';
 
-function createSqliteModule(): DynamicModule {
-  return {
-    module: DatabaseModule,
-    imports: [ConfigModule],
-    providers: [sqliteProvider],
-    exports: [SQLITE_DATABASE],
-    global: true,
-  };
-}
+const entities = [StudySessionEntity];
 
-function createSupabaseModule(): DynamicModule {
-  return {
-    module: DatabaseModule,
-    imports: [ConfigModule],
-    providers: [supabaseProvider],
-    exports: [SUPABASE_CLIENT],
-    global: true,
-  };
-}
+const dataSourceOptions: Record<
+  string,
+  (config: ConfigService) => TypeOrmModuleOptions
+> = {
+  sqlite: () => ({
+    type: 'better-sqlite3',
+    database: process.env.SQLITE_PATH ?? 'study.db',
+    entities,
+    synchronize: true,
+  }),
+  supabase: (config: ConfigService) => ({
+    type: 'postgres',
+    url: config.getOrThrow<string>('DATABASE_URL'),
+    entities,
+    synchronize: false,
+  }),
+};
 
 @Module({})
 export class DatabaseModule {
@@ -34,9 +33,21 @@ export class DatabaseModule {
       throw new Error(DATABASE_ERRORS.MISSING_DB_TYPE);
     }
 
-    if (dbType === 'sqlite') return createSqliteModule();
-    if (dbType === 'supabase') return createSupabaseModule();
+    if (!dataSourceOptions[dbType]) {
+      throw new Error(DATABASE_ERRORS.UNSUPPORTED_DB_TYPE(dbType));
+    }
 
-    throw new Error(DATABASE_ERRORS.UNSUPPORTED_DB_TYPE(dbType));
+    return {
+      module: DatabaseModule,
+      imports: [
+        TypeOrmModule.forRootAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: (config: ConfigService) =>
+            dataSourceOptions[dbType](config),
+        }),
+      ],
+      global: true,
+    };
   }
 }

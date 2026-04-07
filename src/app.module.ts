@@ -24,7 +24,7 @@ import { DatabaseModule } from './database/database.module';
       }),
     }),
     PingModule,
-    StudyModule.forRoot(),
+    StudyModule,
   ],
 })
 export class AppModule {}

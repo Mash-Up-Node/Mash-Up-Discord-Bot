@@ -24,18 +24,12 @@ describe('SupabaseStudySessionRepository (e2e)', () => {
 
   afterAll(async () => {
     // 테스트 데이터 정리
-    await supabase
-      .from('study_sessions')
-      .delete()
-      .eq('user_id', TEST_USER_ID);
+    await supabase.from('study_sessions').delete().eq('user_id', TEST_USER_ID);
   });
 
   afterEach(async () => {
     // 각 테스트 후 테스트 유저 데이터 정리
-    await supabase
-      .from('study_sessions')
-      .delete()
-      .eq('user_id', TEST_USER_ID);
+    await supabase.from('study_sessions').delete().eq('user_id', TEST_USER_ID);
   });
 
   it('Supabase에 연결할 수 있다', async () => {

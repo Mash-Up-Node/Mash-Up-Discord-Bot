@@ -6,7 +6,7 @@ import {
 import {
   STUDY_SESSION_REPOSITORY,
   StudySessionRepository,
-} from './interfaces/study-session.repository';
+} from './repositories/study-session.repository';
 
 @Injectable()
 export class StudyService {

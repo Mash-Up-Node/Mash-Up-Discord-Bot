@@ -4,16 +4,12 @@ import {
   LeaderboardEntry,
   StudySession,
 } from '../entities/study-session.entity';
-import { StudySessionRepository } from '../interfaces/study-session.repository';
-
-interface StudySessionRow {
-  id: string;
-  user_id: string;
-  channel_id: string;
-  joined_at: string;
-  left_at: string | null;
-  duration: number | null;
-}
+import { StudySessionRepository } from './study-session.repository';
+import {
+  StudySessionRow,
+  toEntity,
+  calculateDuration,
+} from './study-session.mapper';
 
 export class SqliteStudySessionRepository implements StudySessionRepository {
   constructor(private readonly db: Database.Database) {
@@ -31,17 +27,6 @@ export class SqliteStudySessionRepository implements StudySessionRepository {
         duration INTEGER
       )
     `);
-  }
-
-  private toEntity(row: StudySessionRow): StudySession {
-    return {
-      id: row.id,
-      userId: row.user_id,
-      channelId: row.channel_id,
-      joinedAt: new Date(row.joined_at),
-      leftAt: row.left_at ? new Date(row.left_at) : null,
-      duration: row.duration,
-    };
   }
 
   createSession(userId: string, channelId: string): Promise<StudySession> {
@@ -69,9 +54,7 @@ export class SqliteStudySessionRepository implements StudySessionRepository {
     if (!active) return null;
 
     const leftAt = new Date();
-    const duration = Math.floor(
-      (leftAt.getTime() - active.joinedAt.getTime()) / 1000,
-    );
+    const duration = calculateDuration(active.joinedAt, leftAt);
 
     this.db
       .prepare(
@@ -79,11 +62,7 @@ export class SqliteStudySessionRepository implements StudySessionRepository {
       )
       .run(leftAt.toISOString(), duration, active.id);
 
-    return {
-      ...active,
-      leftAt,
-      duration,
-    };
+    return { ...active, leftAt, duration };
   }
 
   getActiveSession(userId: string): Promise<StudySession | null> {
@@ -93,7 +72,7 @@ export class SqliteStudySessionRepository implements StudySessionRepository {
       )
       .get(userId) as StudySessionRow | undefined;
 
-    return Promise.resolve(row ? this.toEntity(row) : null);
+    return Promise.resolve(row ? toEntity(row) : null);
   }
 
   getTotalDuration(userId: string): Promise<number> {
@@ -111,7 +90,7 @@ export class SqliteStudySessionRepository implements StudySessionRepository {
       .prepare('SELECT * FROM study_sessions WHERE left_at IS NULL')
       .all() as StudySessionRow[];
 
-    return Promise.resolve(rows.map((row) => this.toEntity(row)));
+    return Promise.resolve(rows.map((row) => toEntity(row)));
   }
 
   getLeaderboard(limit: number): Promise<LeaderboardEntry[]> {

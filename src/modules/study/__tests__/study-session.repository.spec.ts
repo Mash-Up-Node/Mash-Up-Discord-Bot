@@ -2,7 +2,7 @@ import { StudySession } from '../entities/study-session.entity';
 import {
   STUDY_SESSION_REPOSITORY,
   StudySessionRepository,
-} from '../interfaces/study-session.repository';
+} from '../repositories/study-session.repository';
 
 describe('StudySessionRepository Interface', () => {
   it('STUDY_SESSION_REPOSITORY 토큰이 Symbol이다', () => {

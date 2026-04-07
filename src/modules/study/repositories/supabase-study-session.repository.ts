@@ -3,35 +3,16 @@ import {
   LeaderboardEntry,
   StudySession,
 } from '../entities/study-session.entity';
-import { StudySessionRepository } from '../interfaces/study-session.repository';
-
-interface StudySessionRow {
-  id: string;
-  user_id: string;
-  channel_id: string;
-  joined_at: string;
-  left_at: string | null;
-  duration: number | null;
-}
-
-interface LeaderboardRow {
-  user_id: string;
-  total: number;
-}
+import { StudySessionRepository } from './study-session.repository';
+import {
+  StudySessionRow,
+  LeaderboardRow,
+  toEntity,
+  calculateDuration,
+} from './study-session.mapper';
 
 export class SupabaseStudySessionRepository implements StudySessionRepository {
   constructor(private readonly supabase: SupabaseClient) {}
-
-  private toEntity(row: StudySessionRow): StudySession {
-    return {
-      id: row.id,
-      userId: row.user_id,
-      channelId: row.channel_id,
-      joinedAt: new Date(row.joined_at),
-      leftAt: row.left_at ? new Date(row.left_at) : null,
-      duration: row.duration,
-    };
-  }
 
   async createSession(
     userId: string,
@@ -48,7 +29,7 @@ export class SupabaseStudySessionRepository implements StudySessionRepository {
       .single()) as { data: StudySessionRow; error: Error | null };
 
     if (error) throw error;
-    return this.toEntity(data);
+    return toEntity(data);
   }
 
   async getActiveSession(userId: string): Promise<StudySession | null> {
@@ -63,7 +44,7 @@ export class SupabaseStudySessionRepository implements StudySessionRepository {
     };
 
     if (error) throw error;
-    return data ? this.toEntity(data) : null;
+    return data ? toEntity(data) : null;
   }
 
   async endSession(userId: string): Promise<StudySession | null> {
@@ -71,9 +52,7 @@ export class SupabaseStudySessionRepository implements StudySessionRepository {
     if (!active) return null;
 
     const leftAt = new Date();
-    const duration = Math.floor(
-      (leftAt.getTime() - active.joinedAt.getTime()) / 1000,
-    );
+    const duration = calculateDuration(active.joinedAt, leftAt);
 
     const { error } = await this.supabase
       .from('study_sessions')
@@ -112,7 +91,7 @@ export class SupabaseStudySessionRepository implements StudySessionRepository {
     };
 
     if (error) throw error;
-    return (data ?? []).map((row) => this.toEntity(row));
+    return (data ?? []).map((row) => toEntity(row));
   }
 
   async getLeaderboard(limit: number): Promise<LeaderboardEntry[]> {

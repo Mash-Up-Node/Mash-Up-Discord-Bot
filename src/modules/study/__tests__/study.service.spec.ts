@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StudyService } from '../study.service';
-import { STUDY_SESSION_REPOSITORY } from '../interfaces/study-session.repository';
+import { STUDY_SESSION_REPOSITORY } from '../repositories/study-session.repository';
 import { StudySession } from '../entities/study-session.entity';
 
 describe('StudyService', () => {

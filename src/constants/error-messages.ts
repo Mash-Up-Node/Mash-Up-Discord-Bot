@@ -16,3 +16,8 @@ export const DISCORD_ERROR_GUIDES = {
     '',
   ].join('\n'),
 } as const;
+
+export const DATABASE_ERRORS = {
+  MISSING_DB_TYPE: 'DB_TYPE 환경변수가 설정되지 않았습니다.',
+  UNSUPPORTED_DB_TYPE: (dbType: string) => `Unsupported DB_TYPE: ${dbType}`,
+} as const;

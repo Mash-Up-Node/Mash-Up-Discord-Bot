@@ -11,10 +11,10 @@ export class StudySessionEntity {
   @Column({ name: 'channel_id', type: 'varchar' })
   channelId!: string;
 
-  @Column({ name: 'joined_at', type: 'datetime' })
+  @Column({ name: 'joined_at' })
   joinedAt!: Date;
 
-  @Column({ name: 'left_at', type: 'datetime', nullable: true })
+  @Column({ name: 'left_at', type: Date, nullable: true })
   leftAt!: Date | null;
 
   @Column({ type: 'integer', nullable: true })

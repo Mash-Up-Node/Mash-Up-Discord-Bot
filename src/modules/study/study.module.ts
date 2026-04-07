@@ -1,9 +1,35 @@
 import { Module } from '@nestjs/common';
+import {
+  SQLITE_DATABASE,
+  SUPABASE_CLIENT,
+} from '../../database/database.constants';
+import { STUDY_SESSION_REPOSITORY } from './interfaces/study-session.repository';
+import { SqliteStudySessionRepository } from './repositories/sqlite-study-session.repository';
+import { SupabaseStudySessionRepository } from './repositories/supabase-study-session.repository';
 import { StudyService } from './study.service';
 import { StudyListener } from './study.listener';
 import { StudyCommands } from './study.commands';
+import type Database from 'better-sqlite3';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+const dbType = process.env.DB_TYPE;
+
+const repositoryProvider =
+  dbType === 'supabase'
+    ? {
+        provide: STUDY_SESSION_REPOSITORY,
+        inject: [SUPABASE_CLIENT],
+        useFactory: (client: SupabaseClient) =>
+          new SupabaseStudySessionRepository(client),
+      }
+    : {
+        provide: STUDY_SESSION_REPOSITORY,
+        inject: [SQLITE_DATABASE],
+        useFactory: (db: Database.Database) =>
+          new SqliteStudySessionRepository(db),
+      };
 
 @Module({
-  providers: [StudyService, StudyListener, StudyCommands],
+  providers: [repositoryProvider, StudyService, StudyListener, StudyCommands],
 })
 export class StudyModule {}

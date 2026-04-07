@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import { SqliteStudySessionRepository } from '../repositories/sqlite-study-session.repository';
-import { LeaderboardEntry } from '../../modules/study/entities/study-session.entity';
+import { LeaderboardEntry } from '../entities/study-session.entity';
 
 describe('SqliteStudySessionRepository', () => {
   let db: Database.Database;

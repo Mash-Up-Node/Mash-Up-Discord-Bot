@@ -1,4 +1,4 @@
-import { Module, Provider } from '@nestjs/common';
+import { DynamicModule, Module, Provider } from '@nestjs/common';
 import {
   SQLITE_DATABASE,
   SUPABASE_CLIENT,
@@ -29,12 +29,22 @@ function createSupabaseRepository(): Provider {
   };
 }
 
-const repositoryProvider =
-  process.env.DB_TYPE === 'supabase'
-    ? createSupabaseRepository()
-    : createSqliteRepository();
+@Module({})
+export class StudyModule {
+  static forRoot(): DynamicModule {
+    const repositoryProvider =
+      process.env.DB_TYPE === 'supabase'
+        ? createSupabaseRepository()
+        : createSqliteRepository();
 
-@Module({
-  providers: [repositoryProvider, StudyService, StudyListener, StudyCommands],
-})
-export class StudyModule {}
+    return {
+      module: StudyModule,
+      providers: [
+        repositoryProvider,
+        StudyService,
+        StudyListener,
+        StudyCommands,
+      ],
+    };
+  }
+}

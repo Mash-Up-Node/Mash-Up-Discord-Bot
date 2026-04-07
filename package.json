@@ -24,6 +24,7 @@
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@supabase/supabase-js": "^2.102.0",
     "better-sqlite3": "^12.8.0",
     "discord.js": "^14.25.1",
     "necord": "^6.12.4",

@@ -1,50 +1,44 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { SupabaseStudySessionRepository } from '../repositories/supabase-study-session.repository';
+import { DataSource, Repository } from 'typeorm';
+import { StudySessionEntity } from '../entities/study-session.entity';
+import { StudySessionTypeormRepository } from '../repositories/study-session.typeorm-repository';
 
 const TEST_USER_ID = '__test_user_e2e_999999__';
 const TEST_CHANNEL_ID = '__test_channel_e2e_999999__';
 
-describe('SupabaseStudySessionRepository (e2e)', () => {
-  let supabase: SupabaseClient;
-  let repo: SupabaseStudySessionRepository;
+describe('StudySessionTypeormRepository (Supabase e2e)', () => {
+  let dataSource: DataSource;
+  let repo: StudySessionTypeormRepository;
+  let typeormRepo: Repository<StudySessionEntity>;
 
-  beforeAll(() => {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_ANON_KEY;
+  beforeAll(async () => {
+    const url = process.env.DATABASE_URL;
 
-    if (!url || !key) {
-      throw new Error(
-        'SUPABASE_URL과 SUPABASE_ANON_KEY 환경변수가 필요합니다.',
-      );
+    if (!url) {
+      throw new Error('DATABASE_URL 환경변수가 필요합니다.');
     }
 
-    supabase = createClient(url, key);
-    repo = new SupabaseStudySessionRepository(supabase);
+    dataSource = new DataSource({
+      type: 'postgres',
+      url,
+      entities: [StudySessionEntity],
+      synchronize: false,
+    });
+    await dataSource.initialize();
+    typeormRepo = dataSource.getRepository(StudySessionEntity);
+    repo = new StudySessionTypeormRepository(typeormRepo);
   });
 
   afterAll(async () => {
-    // 테스트 데이터 정리
-    await supabase
-      .from('study_sessions')
-      .delete()
-      .eq('user_id', TEST_USER_ID);
+    await typeormRepo.delete({ userId: TEST_USER_ID });
+    await dataSource.destroy();
   });
 
   afterEach(async () => {
-    // 각 테스트 후 테스트 유저 데이터 정리
-    await supabase
-      .from('study_sessions')
-      .delete()
-      .eq('user_id', TEST_USER_ID);
+    await typeormRepo.delete({ userId: TEST_USER_ID });
   });
 
-  it('Supabase에 연결할 수 있다', async () => {
-    const { error } = await supabase
-      .from('study_sessions')
-      .select('id')
-      .limit(1);
-
-    expect(error).toBeNull();
+  it('Supabase에 연결할 수 있다', () => {
+    expect(dataSource.isInitialized).toBe(true);
   });
 
   it('세션을 생성하고 조회할 수 있다', async () => {

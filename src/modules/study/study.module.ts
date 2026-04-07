@@ -12,30 +12,25 @@ import { StudyCommands } from './study.commands';
 import type Database from 'better-sqlite3';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-function createSqliteRepository(): Provider {
-  return {
+const repositoryProviders: Record<string, () => Provider> = {
+  sqlite: () => ({
     provide: STUDY_SESSION_REPOSITORY,
     inject: [SQLITE_DATABASE],
     useFactory: (db: Database.Database) => new SqliteStudySessionRepository(db),
-  };
-}
-
-function createSupabaseRepository(): Provider {
-  return {
+  }),
+  supabase: () => ({
     provide: STUDY_SESSION_REPOSITORY,
     inject: [SUPABASE_CLIENT],
     useFactory: (client: SupabaseClient) =>
       new SupabaseStudySessionRepository(client),
-  };
-}
+  }),
+};
 
 @Module({})
 export class StudyModule {
   static forRoot(): DynamicModule {
-    const repositoryProvider =
-      process.env.DB_TYPE === 'supabase'
-        ? createSupabaseRepository()
-        : createSqliteRepository();
+    const dbType = process.env.DB_TYPE ?? 'sqlite';
+    const repositoryProvider = repositoryProviders[dbType]();
 
     return {
       module: StudyModule,

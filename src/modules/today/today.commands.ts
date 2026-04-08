@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Context, Options, SlashCommand, SlashCommandContext } from 'necord';
+import { DEFAULT_LOCATION } from './constants/today.constants';
+import { TODAY_COMMAND_FAILED } from './constants/today.messages';
 import { TodayQueryDto } from './dto/today-query.dto';
 import { TodayService } from './today.service';
 import {
   formatTodayFortune,
   formatTodaySummary,
 } from './utils/today-formatters';
-
-const DEFAULT_LOCATION = '서울';
 
 @Injectable()
 export class TodayCommands {
@@ -43,9 +43,7 @@ export class TodayCommands {
       await interaction.reply({ content: formatTodaySummary(summary) });
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : '오늘 정보를 가져오지 못했습니다.';
+        error instanceof Error ? error.message : TODAY_COMMAND_FAILED;
 
       await interaction.reply({ content: message });
     }

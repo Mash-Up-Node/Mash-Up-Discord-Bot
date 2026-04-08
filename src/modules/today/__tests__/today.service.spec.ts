@@ -1,4 +1,10 @@
 import { TodayService } from '../today.service';
+import { FORTUNE_QUERIES } from '../constants/today.constants';
+import {
+  createFortuneFetchFailedMessage,
+  INVALID_FORTUNE_INPUT,
+  WEATHER_FETCH_FAILED,
+} from '../constants/today.messages';
 
 const originalFetch = global.fetch;
 const runLiveFortuneTest = process.env.RUN_LIVE_FORTUNE_TEST === '1';
@@ -178,7 +184,7 @@ describe('TodayService', () => {
       });
 
     await expect(service.getTodaySummary('서울')).rejects.toThrow(
-      '오늘 날씨 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.',
+      WEATHER_FETCH_FAILED,
     );
   });
 
@@ -226,7 +232,18 @@ describe('TodayService', () => {
 
   it('운세 입력 형식이 잘못되면 안내 메시지를 던진다', async () => {
     await expect(service.getTodayFortune('남자 2025-05-18')).rejects.toThrow(
-      '운세 형식은 "남자,2025-05-18" 입니다.',
+      INVALID_FORTUNE_INPUT,
+    );
+  });
+
+  it('내일 운세 조회 실패 시 내일 운세 에러 메시지를 던진다', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+    });
+
+    await expect(service.getTomorrowFortune('남자,2025-05-18')).rejects.toThrow(
+      createFortuneFetchFailedMessage(FORTUNE_QUERIES.TOMORROW),
     );
   });
 

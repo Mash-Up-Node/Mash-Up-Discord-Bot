@@ -8,6 +8,8 @@ import {
 
 const originalFetch = global.fetch;
 const runLiveFortuneTest = process.env.RUN_LIVE_FORTUNE_TEST === '1';
+const FORTUNE_JSONP_RESPONSE =
+  'fortuneCallback({ "flick" : ["<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>일석삼조<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.05<\\/span><p>좋은 일이 겹쳐 들어오는 날입니다.<\\/p><\\/dd><\\/dl>", "<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>순망치한<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.06<\\/span><p>말과 행동이 일치하도록 노력할 필요가 있는 날입니다.<\\/p><\\/dd><\\/dl>"] });';
 
 describe('TodayService', () => {
   let service: TodayService;
@@ -81,6 +83,81 @@ describe('TodayService', () => {
       pm2_5: 14.2,
       europeanAqi: 32,
     });
+  });
+
+  it('날씨 조회 시 외부 API를 기대한 쿼리로 호출한다', async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            results: [
+              {
+                name: '서울',
+                country: '대한민국',
+                latitude: 37.5665,
+                longitude: 126.978,
+                timezone: 'Asia/Seoul',
+              },
+            ],
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            current: {
+              temperature_2m: 17.2,
+              apparent_temperature: 16.4,
+              weather_code: 1,
+              is_day: 1,
+              wind_speed_10m: 11.3,
+            },
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            current: {
+              pm10: 28.5,
+              pm2_5: 14.2,
+              european_aqi: 32,
+            },
+          }),
+      });
+
+    await service.getTodaySummary('서울');
+
+    // fetch 순서는 geocoding -> forecast -> air-quality 이다.
+    const [geocodingUrl, forecastUrl, airQualityUrl] = fetchMock.mock.calls.map(
+      ([url]) => url as URL,
+    );
+
+    expect(geocodingUrl.toString()).toContain(
+      'https://geocoding-api.open-meteo.com/v1/search',
+    );
+    expect(geocodingUrl.searchParams.get('name')).toBe('서울');
+    expect(geocodingUrl.searchParams.get('count')).toBe('1');
+    expect(geocodingUrl.searchParams.get('language')).toBe('ko');
+
+    expect(forecastUrl.toString()).toContain('https://api.open-meteo.com/v1/forecast');
+    expect(forecastUrl.searchParams.get('latitude')).toBe('37.5665');
+    expect(forecastUrl.searchParams.get('longitude')).toBe('126.978');
+    expect(forecastUrl.searchParams.get('timezone')).toBe('auto');
+    expect(forecastUrl.searchParams.get('current')).toBe(
+      'temperature_2m,apparent_temperature,weather_code,wind_speed_10m,is_day',
+    );
+
+    expect(airQualityUrl.toString()).toContain(
+      'https://air-quality-api.open-meteo.com/v1/air-quality',
+    );
+    expect(airQualityUrl.searchParams.get('latitude')).toBe('37.5665');
+    expect(airQualityUrl.searchParams.get('longitude')).toBe('126.978');
+    expect(airQualityUrl.searchParams.get('timezone')).toBe('auto');
+    expect(airQualityUrl.searchParams.get('current')).toBe(
+      'pm10,pm2_5,european_aqi',
+    );
   });
 
   it('서울 한글 입력이면 영문 별칭으로 재조회한다', async () => {
@@ -191,10 +268,7 @@ describe('TodayService', () => {
   it('운세 입력을 파싱해 네이버 운세를 반환한다', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      text: () =>
-        Promise.resolve(
-          'fortuneCallback({ "flick" : ["<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>일석삼조<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.05<\\/span><p>좋은 일이 겹쳐 들어오는 날입니다.<\\/p><\\/dd><\\/dl>", "<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>순망치한<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.06<\\/span><p>말과 행동이 일치하도록 노력할 필요가 있는 날입니다.<\\/p><\\/dd><\\/dl>"] });',
-        ),
+      text: () => Promise.resolve(FORTUNE_JSONP_RESPONSE),
     });
 
     const result = await service.getTodayFortune('남자,2025-05-18');
@@ -209,13 +283,32 @@ describe('TodayService', () => {
     });
   });
 
+  it('오늘 운세 조회 시 네이버 API를 기대한 쿼리로 호출한다', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      text: () => Promise.resolve(FORTUNE_JSONP_RESPONSE),
+    });
+
+    await service.getTodayFortune('남자,2025-05-18');
+
+    const [fortuneUrl] = fetchMock.mock.calls[0] as [URL];
+
+    expect(fortuneUrl.toString()).toContain(
+      'https://ts-proxy.naver.com/content/apirender.nhn',
+    );
+    expect(fortuneUrl.searchParams.get('where')).toBe('nexearch');
+    expect(fortuneUrl.searchParams.get('pkid')).toBe('387');
+    expect(fortuneUrl.searchParams.get('_callback')).toBe('fortuneCallback');
+    expect(fortuneUrl.searchParams.get('q')).toBe(FORTUNE_QUERIES.TODAY);
+    expect(fortuneUrl.searchParams.get('u1')).toBe('m');
+    expect(fortuneUrl.searchParams.get('u2')).toBe('20250518');
+    expect(fortuneUrl.searchParams.get('u3')).toBe('solar');
+  });
+
   it('내일 운세 입력을 파싱해 네이버 운세를 반환한다', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      text: () =>
-        Promise.resolve(
-          'fortuneCallback({ "flick" : ["<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>일석삼조<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.05<\\/span><p>좋은 일이 겹쳐 들어오는 날입니다.<\\/p><\\/dd><\\/dl>", "<dl class=\\"infor _innerPanel\\"><dt class=\\"blind\\">총운<\\/dt><dd><strong>운세의 총운은 <b>순망치한<\\/b> 입니다<\\/strong><span class=\\"result_date\\">2026.04.06<\\/span><p>말과 행동이 일치하도록 노력할 필요가 있는 날입니다.<\\/p><\\/dd><\\/dl>"] });',
-        ),
+      text: () => Promise.resolve(FORTUNE_JSONP_RESPONSE),
     });
 
     const result = await service.getTomorrowFortune('남자,2025-05-18');
@@ -228,6 +321,31 @@ describe('TodayService', () => {
       gender: '남자',
       birthDate: '2025-05-18',
     });
+  });
+
+  it('운세 HTML 마크업이 바뀌면 공통 에러 메시지로 변환한다', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      text: () =>
+        Promise.resolve(
+          'fortuneCallback({ "flick" : ["<div>마크업이 바뀐 응답</div>"] });',
+        ),
+    });
+
+    await expect(service.getTodayFortune('남자,2025-05-18')).rejects.toThrow(
+      createFortuneFetchFailedMessage(FORTUNE_QUERIES.TODAY),
+    );
+  });
+
+  it('운세 JSONP 형식이 깨지면 공통 에러 메시지로 변환한다', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      text: () => Promise.resolve('{ "flick": [] }'),
+    });
+
+    await expect(service.getTodayFortune('남자,2025-05-18')).rejects.toThrow(
+      createFortuneFetchFailedMessage(FORTUNE_QUERIES.TODAY),
+    );
   });
 
   it('운세 입력 형식이 잘못되면 안내 메시지를 던진다', async () => {
@@ -247,6 +365,8 @@ describe('TodayService', () => {
     );
   });
 
+  // 목 기반 테스트만으로는 네이버 HTML 마크업 변경을 감지할 수 없어서
+  // 필요할 때 실제 응답을 점검할 수 있는 opt-in live test를 남겨둔다.
   const liveTest = runLiveFortuneTest ? it : it.skip;
 
   liveTest(

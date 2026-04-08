@@ -10,6 +10,7 @@ describe('TodayCommands', () => {
     return {
       deferReply: jest.fn(),
       editReply: jest.fn(),
+      reply: jest.fn(),
     };
   }
 
@@ -85,6 +86,20 @@ describe('TodayCommands', () => {
     expect(interaction.deferReply).toHaveBeenCalled();
     expect(interaction.editReply).toHaveBeenCalledWith({
       content: '오늘 정보를 가져오지 못했습니다.',
+    });
+  });
+
+  it('deferReply가 실패하면 reply로 에러를 전달한다', async () => {
+    const interaction = createMockInteraction();
+    interaction.deferReply.mockRejectedValue(new Error('상호작용 처리 실패'));
+    const dto = new TodayQueryDto();
+
+    await commands.onToday([interaction] as never, dto);
+
+    expect(mockService.getTodaySummary).not.toHaveBeenCalled();
+    expect(interaction.editReply).not.toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledWith({
+      content: '상호작용 처리 실패',
     });
   });
 

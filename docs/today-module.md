@@ -65,11 +65,11 @@ src/modules/today/
 │   └── weather-codes.ts
 ├── dto/
 │   └── today-query.dto.ts
-├── entities/
-│   ├── today-fortune.entity.ts
-│   └── today-summary.entity.ts
 ├── interfaces/
 │   └── today-api.interface.ts
+├── types/
+│   ├── today-fortune.type.ts
+│   └── today-summary.type.ts
 └── __tests__/
     ├── today.commands.spec.ts
     └── today.service.spec.ts

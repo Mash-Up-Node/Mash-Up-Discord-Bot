@@ -43,7 +43,7 @@ describe('TodayCommands', () => {
     expect(mockService.getTodaySummary).toHaveBeenCalledWith('서울');
     expect(interaction.reply).toHaveBeenCalledWith(
       expect.objectContaining({
-        content: expect.stringContaining('서울, 대한민국') as string,
+        content: expect.stringContaining('공기질: 양호') as string,
       }),
     );
   });

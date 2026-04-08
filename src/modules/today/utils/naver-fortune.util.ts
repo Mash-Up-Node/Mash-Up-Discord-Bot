@@ -1,5 +1,5 @@
 import { FortuneQuery, FORTUNE_QUERIES } from '../constants/today.constants';
-import { TodayFortune } from '../entities/today-fortune.entity';
+import { TodayFortune } from '../types/today-fortune.type';
 import { NaverFortuneResponse } from '../interfaces/today-api.interface';
 
 function stripHtml(input: string): string {

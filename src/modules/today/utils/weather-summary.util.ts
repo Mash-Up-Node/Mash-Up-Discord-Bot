@@ -1,4 +1,4 @@
-import { TodaySummary } from '../entities/today-summary.entity';
+import { TodaySummary } from '../types/today-summary.type';
 import {
   AirQualityCurrent,
   ForecastCurrent,

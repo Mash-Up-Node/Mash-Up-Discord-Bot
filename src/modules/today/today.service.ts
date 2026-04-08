@@ -15,8 +15,8 @@ import {
   INVALID_GENDER,
   WEATHER_FETCH_FAILED,
 } from './constants/today.messages';
-import { TodayFortune } from './entities/today-fortune.entity';
-import { TodaySummary } from './entities/today-summary.entity';
+import { TodayFortune } from './types/today-fortune.type';
+import { TodaySummary } from './types/today-summary.type';
 import {
   AirQualityResponse,
   ForecastResponse,

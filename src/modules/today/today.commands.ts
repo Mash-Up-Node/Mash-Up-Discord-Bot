@@ -15,15 +15,18 @@ export class TodayCommands {
 
   @SlashCommand({
     name: '오늘',
-    description: '오늘의 날씨와 미세먼지를 조회합니다.',
+    description: '오늘의 날씨, 미세먼지, 오늘/내일 운세를 조회합니다.',
   })
   async onToday(
     @Context() [interaction]: SlashCommandContext,
     @Options() dto: TodayQueryDto,
   ): Promise<void> {
-    await interaction.deferReply();
+    let hasDeferred = false;
 
     try {
+      await interaction.deferReply();
+      hasDeferred = true;
+
       if (dto.tomorrowFortune?.trim()) {
         const fortune = await this.todayService.getTomorrowFortune(
           dto.tomorrowFortune,
@@ -47,7 +50,12 @@ export class TodayCommands {
       const message =
         error instanceof Error ? error.message : TODAY_COMMAND_FAILED;
 
-      await interaction.editReply({ content: message });
+      if (hasDeferred) {
+        await interaction.editReply({ content: message });
+        return;
+      }
+
+      await interaction.reply({ content: message });
     }
   }
 }

@@ -8,7 +8,8 @@ describe('TodayCommands', () => {
 
   function createMockInteraction() {
     return {
-      reply: jest.fn(),
+      deferReply: jest.fn(),
+      editReply: jest.fn(),
     };
   }
 
@@ -40,8 +41,9 @@ describe('TodayCommands', () => {
 
     await commands.onToday([interaction] as never, dto);
 
+    expect(interaction.deferReply).toHaveBeenCalled();
     expect(mockService.getTodaySummary).toHaveBeenCalledWith('서울');
-    expect(interaction.reply).toHaveBeenCalledWith(
+    expect(interaction.editReply).toHaveBeenCalledWith(
       expect.objectContaining({
         content: expect.stringContaining('공기질: 양호') as string,
       }),
@@ -67,6 +69,7 @@ describe('TodayCommands', () => {
 
     await commands.onToday([interaction] as never, dto);
 
+    expect(interaction.deferReply).toHaveBeenCalled();
     expect(mockService.getTodaySummary).toHaveBeenCalledWith('부산');
   });
 
@@ -79,7 +82,8 @@ describe('TodayCommands', () => {
 
     await commands.onToday([interaction] as never, dto);
 
-    expect(interaction.reply).toHaveBeenCalledWith({
+    expect(interaction.deferReply).toHaveBeenCalled();
+    expect(interaction.editReply).toHaveBeenCalledWith({
       content: '오늘 정보를 가져오지 못했습니다.',
     });
   });
@@ -99,9 +103,10 @@ describe('TodayCommands', () => {
 
     await commands.onToday([interaction] as never, dto);
 
+    expect(interaction.deferReply).toHaveBeenCalled();
     expect(mockService.getTodayFortune).toHaveBeenCalledWith('남자,2025-05-18');
     expect(mockService.getTodaySummary).not.toHaveBeenCalled();
-    expect(interaction.reply).toHaveBeenCalledWith(
+    expect(interaction.editReply).toHaveBeenCalledWith(
       expect.objectContaining({
         content: expect.stringContaining('오늘의 운세') as string,
       }),
@@ -123,12 +128,13 @@ describe('TodayCommands', () => {
 
     await commands.onToday([interaction] as never, dto);
 
+    expect(interaction.deferReply).toHaveBeenCalled();
     expect(mockService.getTomorrowFortune).toHaveBeenCalledWith(
       '남자,2025-05-18',
     );
     expect(mockService.getTodayFortune).not.toHaveBeenCalled();
     expect(mockService.getTodaySummary).not.toHaveBeenCalled();
-    expect(interaction.reply).toHaveBeenCalledWith(
+    expect(interaction.editReply).toHaveBeenCalledWith(
       expect.objectContaining({
         content: expect.stringContaining('내일의 운세') as string,
       }),

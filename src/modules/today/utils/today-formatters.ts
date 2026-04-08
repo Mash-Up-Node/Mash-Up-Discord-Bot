@@ -6,6 +6,7 @@ import {
   RAINY_WEATHER_CODES,
   SNOWY_WEATHER_CODES,
 } from '../constants/air-quality.constants';
+import { WEATHER_ADVICE_MESSAGES } from '../constants/today.messages';
 import { WEATHER_CODE_LABELS } from '../constants/weather-codes';
 import { TodayFortune } from '../types/today-fortune.type';
 import { TodaySummary } from '../types/today-summary.type';
@@ -45,19 +46,19 @@ function createWeatherAdvice(summary: TodaySummary): string[] {
   const tips: string[] = [];
 
   if (RAINY_WEATHER_CODES.has(summary.weatherCode)) {
-    tips.push('우산 챙기세요.');
+    tips.push(WEATHER_ADVICE_MESSAGES.RAIN);
   }
 
   if (SNOWY_WEATHER_CODES.has(summary.weatherCode)) {
-    tips.push('방한 준비를 하고 길 미끄럼을 주의하세요.');
+    tips.push(WEATHER_ADVICE_MESSAGES.SNOW);
   }
 
   if (FOGGY_WEATHER_CODES.has(summary.weatherCode)) {
-    tips.push('안개로 시야가 답답할 수 있어요.');
+    tips.push(WEATHER_ADVICE_MESSAGES.FOG);
   }
 
   if (summary.windSpeed >= 20) {
-    tips.push('바람이 강해서 체감이 더 낮을 수 있어요.');
+    tips.push(WEATHER_ADVICE_MESSAGES.WIND);
   }
 
   return tips;

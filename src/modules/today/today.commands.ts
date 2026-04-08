@@ -21,12 +21,14 @@ export class TodayCommands {
     @Context() [interaction]: SlashCommandContext,
     @Options() dto: TodayQueryDto,
   ): Promise<void> {
+    await interaction.deferReply();
+
     try {
       if (dto.tomorrowFortune?.trim()) {
         const fortune = await this.todayService.getTomorrowFortune(
           dto.tomorrowFortune,
         );
-        await interaction.reply({
+        await interaction.editReply({
           content: formatTodayFortune(fortune, '내일의 운세'),
         });
         return;
@@ -34,18 +36,18 @@ export class TodayCommands {
 
       if (dto.fortune?.trim()) {
         const fortune = await this.todayService.getTodayFortune(dto.fortune);
-        await interaction.reply({ content: formatTodayFortune(fortune) });
+        await interaction.editReply({ content: formatTodayFortune(fortune) });
         return;
       }
 
       const location = dto.location?.trim() || DEFAULT_LOCATION;
       const summary = await this.todayService.getTodaySummary(location);
-      await interaction.reply({ content: formatTodaySummary(summary) });
+      await interaction.editReply({ content: formatTodaySummary(summary) });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : TODAY_COMMAND_FAILED;
 
-      await interaction.reply({ content: message });
+      await interaction.editReply({ content: message });
     }
   }
 }

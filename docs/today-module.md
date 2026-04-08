@@ -58,10 +58,18 @@ src/modules/today/
 ├── today.module.ts
 ├── today.commands.ts
 ├── today.service.ts
+├── constants/
+│   ├── today.constants.ts
+│   ├── today.locations.ts
+│   ├── today.messages.ts
+│   └── weather-codes.ts
 ├── dto/
 │   └── today-query.dto.ts
 ├── entities/
+│   ├── today-fortune.entity.ts
 │   └── today-summary.entity.ts
+├── interfaces/
+│   └── today-api.interface.ts
 └── __tests__/
     ├── today.commands.spec.ts
     └── today.service.spec.ts

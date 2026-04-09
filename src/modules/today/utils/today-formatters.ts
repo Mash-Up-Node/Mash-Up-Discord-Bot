@@ -11,6 +11,7 @@ import { WEATHER_CODE_LABELS } from '../constants/weather-codes';
 import { TodayFortune } from '../types/today-fortune.type';
 import { TodaySummary } from '../types/today-summary.type';
 
+// Open-Meteo 날씨 코드의 사용자용 라벨 변환
 export function formatWeatherCode(weatherCode: number, isDay: boolean): string {
   const label = WEATHER_CODE_LABELS[weatherCode];
 
@@ -25,6 +26,7 @@ export function formatNumber(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
+// AQI 구간 탐색 및 등급/안내 재사용
 function getAirQualityBand(aqi: number) {
   return (
     EUROPEAN_AQI_BANDS.find((band) => aqi <= band.max) ??
@@ -32,6 +34,7 @@ function getAirQualityBand(aqi: number) {
   );
 }
 
+// PM10/PM2.5 공통 구간 라벨 탐색
 function getDustBand(
   value: number,
   bands: Array<{ max: number; label: string }>,
@@ -42,6 +45,7 @@ function getDustBand(
   );
 }
 
+// 공기질 기본 안내 위의 날씨 상황별 안내 추가
 function createWeatherAdvice(summary: TodaySummary): string[] {
   const tips: string[] = [];
 
@@ -64,6 +68,7 @@ function createWeatherAdvice(summary: TodaySummary): string[] {
   return tips;
 }
 
+// 날씨 조회 결과의 디스코드 메시지 요약 변환
 export function formatTodaySummary(summary: TodaySummary): string {
   const airQuality = getAirQualityBand(summary.europeanAqi);
   const pm10Label = getDustBand(summary.pm10, PM10_BANDS);
@@ -84,6 +89,7 @@ export function formatTodaySummary(summary: TodaySummary): string {
   ].join('\n');
 }
 
+// 오늘/내일 운세 공통 메시지 렌더링
 export function formatTodayFortune(
   fortune: TodayFortune,
   title = '오늘의 운세',

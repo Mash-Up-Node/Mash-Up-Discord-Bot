@@ -17,6 +17,7 @@ export class TodayCommands {
     name: '오늘',
     description: '오늘의 날씨, 미세먼지, 오늘/내일 운세를 조회합니다.',
   })
+  // 옵션 우선순위에 따른 운세/날씨 분기 진입점
   async onToday(
     @Context() [interaction]: SlashCommandContext,
     @Options() dto: TodayQueryDto,
@@ -24,9 +25,11 @@ export class TodayCommands {
     let hasDeferred = false;
 
     try {
+      // 외부 API 호출 전 응답 지연
       await interaction.deferReply();
       hasDeferred = true;
 
+      // 운세 옵션 동시 입력 시 내일 운세 우선
       if (dto.tomorrowFortune?.trim()) {
         const fortune = await this.todayService.getTomorrowFortune(
           dto.tomorrowFortune,
@@ -43,6 +46,7 @@ export class TodayCommands {
         return;
       }
 
+      // 운세 옵션 미입력 시 기본 날씨 요약 경로
       const location = dto.location?.trim() || DEFAULT_LOCATION;
       const summary = await this.todayService.getTodaySummary(location);
       await interaction.editReply({ content: formatTodaySummary(summary) });
@@ -50,6 +54,7 @@ export class TodayCommands {
       const message =
         error instanceof Error ? error.message : TODAY_COMMAND_FAILED;
 
+      // defer 여부에 따른 응답 방식 분기
       if (hasDeferred) {
         await interaction.editReply({ content: message });
         return;

@@ -31,6 +31,7 @@ import { toTodaySummary } from './utils/weather-summary.util';
 
 @Injectable()
 export class TodayService {
+  // 지역 좌표 해석 후 날씨/공기질 병렬 조회
   async getTodaySummary(location: string): Promise<TodaySummary> {
     const resolvedLocation = await this.resolveLocation(location);
 
@@ -66,14 +67,17 @@ export class TodayService {
     }
   }
 
+  // 오늘 운세 쿼리 캡슐화
   async getTodayFortune(rawInput: string): Promise<TodayFortune> {
     return this.getFortune(rawInput, FORTUNE_QUERIES.TODAY);
   }
 
+  // 내일 운세 쿼리 캡슐화
   async getTomorrowFortune(rawInput: string): Promise<TodayFortune> {
     return this.getFortune(rawInput, FORTUNE_QUERIES.TOMORROW);
   }
 
+  // 네이버 요청 구성 및 공급자 오류 메시지 통합
   private async getFortune(
     rawInput: string,
     query: FortuneQuery,
@@ -115,6 +119,7 @@ export class TodayService {
     }
   }
 
+  // 한글 도시명 실패 시 영문 별칭 재시도
   private async resolveLocation(location: string): Promise<GeocodingResult> {
     try {
       const result =
@@ -138,6 +143,7 @@ export class TodayService {
     }
   }
 
+  // Open-Meteo 첫 번째 좌표 후보 검색
   private async searchLocation(
     locationQuery: string,
   ): Promise<GeocodingResult | null> {
@@ -154,6 +160,7 @@ export class TodayService {
     return response.results?.[0] ?? null;
   }
 
+  // 엔드포인트별 current 필드 구성
   private createForecastUrl(
     baseUrl: string,
     latitude: number,
@@ -185,6 +192,7 @@ export class TodayService {
     return url;
   }
 
+  // 메시지 매핑 분리를 위한 얇은 JSON 요청 헬퍼
   private async fetchJson<T>(url: URL): Promise<T> {
     const response = await fetch(url);
 
@@ -195,6 +203,7 @@ export class TodayService {
     return (await response.json()) as T;
   }
 
+  // 메시지 매핑 분리를 위한 얇은 텍스트 요청 헬퍼
   private async fetchText(url: URL): Promise<string> {
     const response = await fetch(url);
 

@@ -6,6 +6,7 @@ import {
 } from '../interfaces/today-api.interface';
 import { formatLocationName } from './location-name.util';
 
+// 외부 API 응답의 today 요약 형태 평탄화
 export function toTodaySummary(
   location: GeocodingResult,
   forecast: ForecastCurrent,

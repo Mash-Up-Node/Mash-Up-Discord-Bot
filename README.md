@@ -66,6 +66,13 @@ npm run build
 npm run start:prod
 ```
 
+## 문서
+
+- [봇 생성 가이드](docs/bot-setup-guide.md)
+- [공부방 시간 측정 모듈](docs/study-module.md)
+- [테스트 가이드](docs/testing-guide.md)
+- [Supabase 마이그레이션 SQL](docs/supabase-migration.sql)
+
 ## 팀원
 
 | 이름 | 역할 |

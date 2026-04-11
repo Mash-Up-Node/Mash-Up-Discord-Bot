@@ -2,11 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { Context, Options, SlashCommand, SlashCommandContext } from 'necord';
 import { StudyService } from './study.service';
 import { StudyTimeDto } from './dto/study-time.dto';
+import {
+  SECONDS_PER_HOUR,
+  SECONDS_PER_MINUTE,
+  LEADERBOARD_LIMIT,
+} from './study.constants';
 
 function formatDuration(totalSeconds: number): string {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+  if (totalSeconds === 0) return '0초';
+
+  const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+  const minutes = Math.floor(
+    (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE,
+  );
+  const seconds = totalSeconds % SECONDS_PER_MINUTE;
 
   const parts: string[] = [];
   if (hours > 0) parts.push(`${hours}시간`);
@@ -54,7 +63,8 @@ export class StudyCommands {
   async onLeaderboard(
     @Context() [interaction]: SlashCommandContext,
   ): Promise<void> {
-    const leaderboard = await this.studyService.getLeaderboard(10);
+    const leaderboard =
+      await this.studyService.getLeaderboard(LEADERBOARD_LIMIT);
 
     if (leaderboard.length === 0) {
       await interaction.reply({ content: '아직 공부 기록이 없습니다.' });

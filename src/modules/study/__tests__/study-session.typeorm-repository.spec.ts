@@ -1,18 +1,26 @@
-import Database from 'better-sqlite3';
-import { SqliteStudySessionRepository } from '../repositories/sqlite-study-session.repository';
-import { LeaderboardEntry } from '../entities/study-session.entity';
+import { DataSource, Repository } from 'typeorm';
+import { StudySessionEntity } from '../entities/study-session.entity';
+import { StudySessionTypeormRepository } from '../repositories/study-session.typeorm-repository';
 
-describe('SqliteStudySessionRepository', () => {
-  let db: Database.Database;
-  let repo: SqliteStudySessionRepository;
+describe('StudySessionTypeormRepository', () => {
+  let dataSource: DataSource;
+  let repo: StudySessionTypeormRepository;
+  let typeormRepo: Repository<StudySessionEntity>;
 
-  beforeEach(() => {
-    db = new Database(':memory:');
-    repo = new SqliteStudySessionRepository(db);
+  beforeEach(async () => {
+    dataSource = new DataSource({
+      type: 'better-sqlite3',
+      database: ':memory:',
+      entities: [StudySessionEntity],
+      synchronize: true,
+    });
+    await dataSource.initialize();
+    typeormRepo = dataSource.getRepository(StudySessionEntity);
+    repo = new StudySessionTypeormRepository(typeormRepo);
   });
 
-  afterEach(() => {
-    db.close();
+  afterEach(async () => {
+    await dataSource.destroy();
   });
 
   describe('createSession', () => {
@@ -26,7 +34,7 @@ describe('SqliteStudySessionRepository', () => {
       expect(session.duration).toBeNull();
     });
 
-    it('id는 UUID 형식이다', async () => {
+    it('id가 생성된다', async () => {
       const session = await repo.createSession('user-1', 'channel-1');
       expect(session.id).toBeDefined();
       expect(session.id.length).toBeGreaterThan(0);
@@ -80,7 +88,6 @@ describe('SqliteStudySessionRepository', () => {
     });
 
     it('종료된 세션들의 duration 합계를 반환한다', async () => {
-      // 세션 2개 생성 후 종료
       await repo.createSession('user-1', 'channel-1');
       await repo.endSession('user-1');
 
@@ -120,18 +127,8 @@ describe('SqliteStudySessionRepository', () => {
 
   describe('getLeaderboard', () => {
     it('기록이 없으면 빈 배열을 반환한다', async () => {
-      const leaderboard: LeaderboardEntry[] = await repo.getLeaderboard(10);
+      const leaderboard = await repo.getLeaderboard(10);
       expect(leaderboard).toEqual([]);
-    });
-
-    it('총 공부 시간 내림차순으로 반환한다', async () => {
-      const leaderboard: LeaderboardEntry[] = await repo.getLeaderboard(10);
-
-      for (let i = 0; i < leaderboard.length - 1; i++) {
-        expect(leaderboard[i].total).toBeGreaterThanOrEqual(
-          leaderboard[i + 1].total,
-        );
-      }
     });
 
     it('limit만큼만 반환한다', async () => {
@@ -140,7 +137,7 @@ describe('SqliteStudySessionRepository', () => {
       await repo.createSession('user-2', 'channel-1');
       await repo.endSession('user-2');
 
-      const leaderboard: LeaderboardEntry[] = await repo.getLeaderboard(1);
+      const leaderboard = await repo.getLeaderboard(1);
       expect(leaderboard).toHaveLength(1);
     });
   });

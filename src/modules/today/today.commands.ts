@@ -9,6 +9,8 @@ import {
   formatTodaySummary,
 } from './utils/today-formatters';
 
+const DISCORD_UNKNOWN_INTERACTION_CODE = 10062;
+
 @Injectable()
 export class TodayCommands {
   constructor(private readonly todayService: TodayService) {}
@@ -51,16 +53,59 @@ export class TodayCommands {
       const summary = await this.todayService.getTodaySummary(location);
       await interaction.editReply({ content: formatTodaySummary(summary) });
     } catch (error) {
+      if (this.isUnknownInteractionError(error)) {
+        return;
+      }
+
       const message =
         error instanceof Error ? error.message : TODAY_COMMAND_FAILED;
 
       // defer 여부에 따른 응답 방식 분기
       if (hasDeferred) {
-        await interaction.editReply({ content: message });
+        await this.safeEditReply(interaction, message);
         return;
       }
 
+      await this.safeReply(interaction, message);
+    }
+  }
+
+  private isUnknownInteractionError(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === DISCORD_UNKNOWN_INTERACTION_CODE
+    );
+  }
+
+  private async safeEditReply(
+    interaction: SlashCommandContext[0],
+    message: string,
+  ): Promise<void> {
+    try {
+      await interaction.editReply({ content: message });
+    } catch (error) {
+      if (this.isUnknownInteractionError(error)) {
+        return;
+      }
+
+      throw error;
+    }
+  }
+
+  private async safeReply(
+    interaction: SlashCommandContext[0],
+    message: string,
+  ): Promise<void> {
+    try {
       await interaction.reply({ content: message });
+    } catch (error) {
+      if (this.isUnknownInteractionError(error)) {
+        return;
+      }
+
+      throw error;
     }
   }
 }

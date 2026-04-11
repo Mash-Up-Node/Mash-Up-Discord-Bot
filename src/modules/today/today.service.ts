@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  FORTUNE_QUERIES,
-  FortuneQuery,
-  NAVER_FORTUNE_ENDPOINT,
-  OPEN_METEO_AIR_QUALITY_ENDPOINT,
-  OPEN_METEO_FORECAST_ENDPOINT,
-  OPEN_METEO_GEOCODING_ENDPOINT,
-} from './constants/today.constants';
+import { FORTUNE_QUERIES, FortuneQuery } from './constants/today.constants';
+import { TodayFortuneClient } from './clients/today-fortune.client';
+import { TodayWeatherClient } from './clients/today-weather.client';
 import { LOCATION_ALIASES } from './constants/today.locations';
 import {
   createFortuneFetchFailedMessage,
@@ -18,9 +13,6 @@ import {
 import { TodayFortune } from './types/today-fortune.type';
 import { TodaySummary } from './types/today-summary.type';
 import {
-  AirQualityResponse,
-  ForecastResponse,
-  GeocodingResponse,
   GeocodingResult,
   NaverFortuneResponse,
 } from './interfaces/today-api.interface';
@@ -29,27 +21,33 @@ import { extractFortune, selectFortuneHtml } from './utils/naver-fortune.util';
 import { parseJsonp } from './utils/naver-jsonp.util';
 import { toTodaySummary } from './utils/weather-summary.util';
 
+class LocationNotFoundError extends Error {
+  constructor(location: string) {
+    super(createLocationNotFoundMessage(location));
+    this.name = 'LocationNotFoundError';
+  }
+}
+
 @Injectable()
 export class TodayService {
+  constructor(
+    private readonly weatherClient: TodayWeatherClient,
+    private readonly fortuneClient: TodayFortuneClient,
+  ) {}
+
   // 지역 좌표 해석 후 날씨/공기질 병렬 조회
   async getTodaySummary(location: string): Promise<TodaySummary> {
     const resolvedLocation = await this.resolveLocation(location);
 
     try {
       const [forecast, airQuality] = await Promise.all([
-        this.fetchJson<ForecastResponse>(
-          this.createForecastUrl(
-            OPEN_METEO_FORECAST_ENDPOINT,
-            resolvedLocation.latitude,
-            resolvedLocation.longitude,
-          ),
+        this.weatherClient.getForecast(
+          resolvedLocation.latitude,
+          resolvedLocation.longitude,
         ),
-        this.fetchJson<AirQualityResponse>(
-          this.createForecastUrl(
-            OPEN_METEO_AIR_QUALITY_ENDPOINT,
-            resolvedLocation.latitude,
-            resolvedLocation.longitude,
-          ),
+        this.weatherClient.getAirQuality(
+          resolvedLocation.latitude,
+          resolvedLocation.longitude,
         ),
       ]);
 
@@ -83,17 +81,12 @@ export class TodayService {
     query: FortuneQuery,
   ): Promise<TodayFortune> {
     const parsedInput = parseFortuneInput(rawInput);
-    const url = new URL(NAVER_FORTUNE_ENDPOINT);
-    url.searchParams.set('where', 'nexearch');
-    url.searchParams.set('pkid', '387');
-    url.searchParams.set('_callback', 'fortuneCallback');
-    url.searchParams.set('q', query);
-    url.searchParams.set('u1', parsedInput.genderCode);
-    url.searchParams.set('u2', parsedInput.birthDateCompact);
-    url.searchParams.set('u3', 'solar');
 
     try {
-      const response = await this.fetchText(url);
+      const response = await this.fortuneClient.fetchFortuneResponse(
+        query,
+        parsedInput,
+      );
       const payload = parseJsonp<NaverFortuneResponse>(response);
       const html = selectFortuneHtml(payload, query);
 
@@ -119,98 +112,26 @@ export class TodayService {
     }
   }
 
-  // 한글 도시명 실패 시 영문 별칭 재시도
+  // 원본 입력 실패 시 영문 별칭 재시도
   private async resolveLocation(location: string): Promise<GeocodingResult> {
     try {
       const result =
-        (await this.searchLocation(location)) ??
-        (await this.searchLocation(LOCATION_ALIASES.get(location) ?? ''));
+        (await this.weatherClient.searchLocation(location)) ??
+        (await this.weatherClient.searchLocation(
+          LOCATION_ALIASES.get(location) ?? '',
+        ));
 
       if (!result) {
-        throw new Error(createLocationNotFoundMessage(location));
+        throw new LocationNotFoundError(location);
       }
 
       return result;
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.includes('지역을 찾지 못했')
-      ) {
+      if (error instanceof LocationNotFoundError) {
         throw error;
       }
 
       throw new Error(WEATHER_FETCH_FAILED);
     }
-  }
-
-  // Open-Meteo 첫 번째 좌표 후보 검색
-  private async searchLocation(
-    locationQuery: string,
-  ): Promise<GeocodingResult | null> {
-    if (!locationQuery) {
-      return null;
-    }
-
-    const url = new URL(OPEN_METEO_GEOCODING_ENDPOINT);
-    url.searchParams.set('name', locationQuery);
-    url.searchParams.set('count', '1');
-    url.searchParams.set('language', 'ko');
-
-    const response = await this.fetchJson<GeocodingResponse>(url);
-    return response.results?.[0] ?? null;
-  }
-
-  // 엔드포인트별 current 필드 구성
-  private createForecastUrl(
-    baseUrl: string,
-    latitude: number,
-    longitude: number,
-  ): URL {
-    const url = new URL(baseUrl);
-    url.searchParams.set('latitude', String(latitude));
-    url.searchParams.set('longitude', String(longitude));
-    url.searchParams.set('timezone', 'auto');
-
-    if (baseUrl === OPEN_METEO_FORECAST_ENDPOINT) {
-      url.searchParams.set(
-        'current',
-        [
-          'temperature_2m',
-          'apparent_temperature',
-          'weather_code',
-          'wind_speed_10m',
-          'is_day',
-        ].join(','),
-      );
-      return url;
-    }
-
-    url.searchParams.set(
-      'current',
-      ['pm10', 'pm2_5', 'european_aqi'].join(','),
-    );
-    return url;
-  }
-
-  // 메시지 매핑 분리를 위한 얇은 JSON 요청 헬퍼
-  private async fetchJson<T>(url: URL): Promise<T> {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`Open-Meteo request failed: ${response.status}`);
-    }
-
-    return (await response.json()) as T;
-  }
-
-  // 메시지 매핑 분리를 위한 얇은 텍스트 요청 헬퍼
-  private async fetchText(url: URL): Promise<string> {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`Naver request failed: ${response.status}`);
-    }
-
-    return response.text();
   }
 }

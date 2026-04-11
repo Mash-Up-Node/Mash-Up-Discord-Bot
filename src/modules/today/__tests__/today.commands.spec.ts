@@ -6,6 +6,10 @@ describe('TodayCommands', () => {
   let commands: TodayCommands;
   let mockService: Record<string, jest.Mock>;
 
+  function createUnknownInteractionError() {
+    return Object.assign(new Error('Unknown interaction'), { code: 10062 });
+  }
+
   function createMockInteraction() {
     return {
       deferReply: jest.fn(),
@@ -101,6 +105,42 @@ describe('TodayCommands', () => {
     expect(interaction.reply).toHaveBeenCalledWith({
       content: '상호작용 처리 실패',
     });
+  });
+
+  it('Unknown interaction으로 deferReply가 실패하면 재응답하지 않는다', async () => {
+    const interaction = createMockInteraction();
+    interaction.deferReply.mockRejectedValue(createUnknownInteractionError());
+    const dto = new TodayQueryDto();
+
+    await expect(commands.onToday([interaction] as never, dto)).resolves.toBeUndefined();
+
+    expect(mockService.getTodaySummary).not.toHaveBeenCalled();
+    expect(interaction.reply).not.toHaveBeenCalled();
+    expect(interaction.editReply).not.toHaveBeenCalled();
+  });
+
+  it('Unknown interaction으로 editReply가 실패하면 추가 재시도 없이 종료한다', async () => {
+    mockService.getTodaySummary.mockResolvedValue({
+      locationName: '서울, 대한민국',
+      timezone: 'Asia/Seoul',
+      temperature: 17.2,
+      apparentTemperature: 16.4,
+      weatherCode: 0,
+      isDay: true,
+      windSpeed: 11.3,
+      pm10: 28.5,
+      pm2_5: 14.2,
+      europeanAqi: 32,
+    });
+    const interaction = createMockInteraction();
+    interaction.editReply.mockRejectedValue(createUnknownInteractionError());
+    const dto = new TodayQueryDto();
+
+    await expect(commands.onToday([interaction] as never, dto)).resolves.toBeUndefined();
+
+    expect(interaction.deferReply).toHaveBeenCalled();
+    expect(interaction.editReply).toHaveBeenCalledTimes(1);
+    expect(interaction.reply).not.toHaveBeenCalled();
   });
 
   it('운세 옵션이 있으면 운세 조회를 우선한다', async () => {

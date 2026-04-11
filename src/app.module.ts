@@ -4,10 +4,12 @@ import { NecordModule } from 'necord';
 import { IntentsBitField } from 'discord.js';
 import { PingModule } from './modules/ping/ping.module';
 import { StudyModule } from './modules/study/study.module';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    DatabaseModule.forRoot(),
     NecordModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

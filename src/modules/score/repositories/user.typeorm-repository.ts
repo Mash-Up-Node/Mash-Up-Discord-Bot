@@ -1,7 +1,7 @@
 import { In, Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { UserRepository } from './user.repository';
-import { JobTag, TeamRanking } from '../score.constants';
+import { Department, TeamRanking } from '../score.constants';
 
 export class UserTypeormRepository implements UserRepository {
   constructor(private readonly repo: Repository<UserEntity>) {}
@@ -17,7 +17,7 @@ export class UserTypeormRepository implements UserRepository {
     discordId: string;
     nickname: string;
     generation: number;
-    jobTag: JobTag;
+    department: Department;
   }): Promise<UserEntity> {
     const existing = await this.repo.findOne({
       where: { discordId: data.discordId },
@@ -26,7 +26,7 @@ export class UserTypeormRepository implements UserRepository {
     if (existing) {
       existing.nickname = data.nickname;
       existing.generation = data.generation;
-      existing.jobTag = data.jobTag;
+      existing.department = data.department;
       return this.repo.save(existing);
     }
 
@@ -34,7 +34,7 @@ export class UserTypeormRepository implements UserRepository {
       discordId: data.discordId,
       nickname: data.nickname,
       generation: data.generation,
-      jobTag: data.jobTag,
+      department: data.department,
       isAdmin: false,
       teamId: null,
       score: 0,

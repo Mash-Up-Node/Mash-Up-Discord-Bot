@@ -1,6 +1,6 @@
 import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { TeamEntity } from './team.entity';
-import { JobTag } from '../score.constants';
+import { Department } from '../score.constants';
 
 @Entity('users')
 export class UserEntity {
@@ -13,8 +13,8 @@ export class UserEntity {
   @Column({ type: 'integer' })
   generation!: number;
 
-  @Column({ name: 'job_tag', type: 'varchar', default: JobTag.Unknown })
-  jobTag!: JobTag;
+  @Column({ type: 'varchar', default: Department.Unknown })
+  department!: Department;
 
   @Column({ name: 'is_admin', type: 'boolean', default: false })
   isAdmin!: boolean;

@@ -1,5 +1,5 @@
 import { UserEntity } from '../entities/user.entity';
-import { JobTag, TeamRanking } from '../score.constants';
+import { Department, TeamRanking } from '../score.constants';
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 
@@ -9,7 +9,7 @@ export interface UserRepository {
     discordId: string;
     nickname: string;
     generation: number;
-    jobTag: JobTag;
+    department: Department;
   }): Promise<UserEntity>;
   update(
     discordId: string,

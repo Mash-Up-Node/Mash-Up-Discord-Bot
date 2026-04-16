@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UserEntity } from './entities/user.entity';
 import { TeamEntity } from './entities/team.entity';
 import {
-  JobTag,
-  JOB_TAG_REGEX,
+  Department,
+  DEPARTMENT_REGEX,
   ADMIN_PASSWORD,
   TeamRanking,
   SyncResult,
@@ -56,9 +56,13 @@ export class ScoreService {
     let synced = 0;
 
     for (const member of members) {
-      const match = member.displayName.match(JOB_TAG_REGEX);
-      const jobTag = match ? (match[1] as JobTag) : JobTag.Unknown;
-      const nickname = member.displayName.replace(JOB_TAG_REGEX, '').trim();
+      const match = member.displayName.match(DEPARTMENT_REGEX);
+      const department = match
+        ? (match[1] as Department)
+        : Department.Unknown;
+      const nickname = member.displayName
+        .replace(DEPARTMENT_REGEX, '')
+        .trim();
 
       if (!match) {
         failed.push({
@@ -71,7 +75,7 @@ export class ScoreService {
         discordId: member.discordId,
         nickname: nickname || member.displayName,
         generation,
-        jobTag,
+        department,
       });
       synced++;
     }
@@ -82,14 +86,14 @@ export class ScoreService {
   async registerMember(
     discordId: string,
     nickname: string,
-    jobTag: JobTag,
+    department: Department,
     generation: number,
   ): Promise<UserEntity> {
     return this.userRepository.upsert({
       discordId,
       nickname,
       generation,
-      jobTag,
+      department,
     });
   }
 
@@ -116,7 +120,7 @@ export class ScoreService {
         discordId,
         nickname,
         generation: 0,
-        jobTag: JobTag.Unknown,
+        department: Department.Unknown,
       });
     }
 

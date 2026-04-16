@@ -1,4 +1,4 @@
-export enum JobTag {
+export enum Department {
   Node = '노드',
   Spring = '스프링',
   Design = '디자인',
@@ -8,7 +8,7 @@ export enum JobTag {
   Unknown = 'Unknown',
 }
 
-export const JOB_TAG_REGEX = /^\[(노드|스프링|디자인|아오스|안드|웹)\]/;
+export const DEPARTMENT_REGEX = /^\[(노드|스프링|디자인|아오스|안드|웹)\]/;
 
 export const ADMIN_PASSWORD = 'mashup1234';
 

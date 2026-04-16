@@ -25,6 +25,6 @@ export class TeamTypeormRepository implements TeamRepository {
   }
 
   async deleteAll(): Promise<void> {
-    await this.repo.delete({});
+    await this.repo.createQueryBuilder().delete().execute();
   }
 }

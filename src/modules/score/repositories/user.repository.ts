@@ -5,7 +5,7 @@ export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 
 export interface UserRepository {
   findByDiscordId(discordId: string): Promise<UserEntity | null>;
-  upsert(data: {
+  create(data: {
     discordId: string;
     nickname: string;
     generation: number;

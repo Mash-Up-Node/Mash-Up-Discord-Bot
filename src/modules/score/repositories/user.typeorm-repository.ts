@@ -13,28 +13,14 @@ export class UserTypeormRepository implements UserRepository {
     });
   }
 
-  async upsert(data: {
+  async create(data: {
     discordId: string;
     nickname: string;
     generation: number;
     department: Department;
   }): Promise<UserEntity> {
-    const existing = await this.repo.findOne({
-      where: { discordId: data.discordId },
-    });
-
-    if (existing) {
-      existing.nickname = data.nickname;
-      existing.generation = data.generation;
-      existing.department = data.department;
-      return this.repo.save(existing);
-    }
-
     const user = this.repo.create({
-      discordId: data.discordId,
-      nickname: data.nickname,
-      generation: data.generation,
-      department: data.department,
+      ...data,
       isAdmin: false,
       teamId: null,
       score: 0,
@@ -81,6 +67,10 @@ export class UserTypeormRepository implements UserRepository {
   }
 
   async resetAllScoresAndTeams(): Promise<void> {
-    await this.repo.update({}, { score: 0, teamId: null });
+    await this.repo
+      .createQueryBuilder()
+      .update()
+      .set({ score: 0, teamId: null })
+      .execute();
   }
 }

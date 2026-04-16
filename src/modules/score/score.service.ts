@@ -71,12 +71,23 @@ export class ScoreService {
         });
       }
 
-      await this.userRepository.upsert({
-        discordId: member.discordId,
-        nickname: nickname || member.displayName,
-        generation,
-        department,
-      });
+      const existing = await this.userRepository.findByDiscordId(
+        member.discordId,
+      );
+      if (existing) {
+        await this.userRepository.update(member.discordId, {
+          nickname: nickname || member.displayName,
+          generation,
+          department,
+        });
+      } else {
+        await this.userRepository.create({
+          discordId: member.discordId,
+          nickname: nickname || member.displayName,
+          generation,
+          department,
+        });
+      }
       synced++;
     }
 
@@ -89,7 +100,16 @@ export class ScoreService {
     department: Department,
     generation: number,
   ): Promise<UserEntity> {
-    return this.userRepository.upsert({
+    const existing = await this.userRepository.findByDiscordId(discordId);
+    if (existing) {
+      await this.userRepository.update(discordId, {
+        nickname,
+        department,
+        generation,
+      });
+      return { ...existing, nickname, department, generation };
+    }
+    return this.userRepository.create({
       discordId,
       nickname,
       generation,
@@ -116,7 +136,7 @@ export class ScoreService {
 
     const user = await this.userRepository.findByDiscordId(discordId);
     if (!user) {
-      await this.userRepository.upsert({
+      await this.userRepository.create({
         discordId,
         nickname,
         generation: 0,

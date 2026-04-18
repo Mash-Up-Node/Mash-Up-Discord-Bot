@@ -5,9 +5,22 @@ import { StudySessionEntity } from '../modules/study/entities/study-session.enti
 import { UserEntity } from '../modules/score/entities/user.entity';
 import { TeamEntity } from '../modules/score/entities/team.entity';
 import { DiscordChannelEntity } from '../modules/shared/entities/discord-channel.entity';
+import { TicketacoDeliveryEntity } from '../modules/ticketaco/entities/ticketaco-delivery.entity';
+import { TicketacoEventEntity } from '../modules/ticketaco/entities/ticketaco-event.entity';
+import { TicketacoOrganizationEntity } from '../modules/ticketaco/entities/ticketaco-organization.entity';
+import { TicketacoSubscriptionEntity } from '../modules/ticketaco/entities/ticketaco-subscription.entity';
 import { DATABASE_ERRORS } from '../constants/error-messages';
 
-const entities = [DiscordChannelEntity, StudySessionEntity, UserEntity, TeamEntity];
+const entities = [
+  DiscordChannelEntity,
+  StudySessionEntity,
+  UserEntity,
+  TeamEntity,
+  TicketacoDeliveryEntity,
+  TicketacoEventEntity,
+  TicketacoOrganizationEntity,
+  TicketacoSubscriptionEntity,
+];
 
 const dataSourceOptions: Record<
   string,

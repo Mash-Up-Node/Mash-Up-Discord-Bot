@@ -5,8 +5,11 @@ import {
   createLocationNotFoundMessage,
   WEATHER_FETCH_FAILED,
 } from '../constants/today.messages';
-import { GeocodingResult } from '../interfaces/today-api.interface';
-import { toTodaySummary } from '../mappers/today-summary.mapper';
+import {
+  AirQualityCurrent,
+  ForecastCurrent,
+  GeocodingResult,
+} from '../interfaces/today-api.interface';
 import { TodaySummary } from '../types/today-summary.type';
 
 class LocationNotFoundError extends Error {
@@ -39,7 +42,7 @@ export class TodayWeatherService {
         throw new Error('Missing current payload');
       }
 
-      return toTodaySummary(
+      return this.toTodaySummary(
         resolvedLocation,
         forecast.current,
         airQuality.current,
@@ -69,5 +72,38 @@ export class TodayWeatherService {
 
       throw new Error(WEATHER_FETCH_FAILED);
     }
+  }
+
+  private toTodaySummary(
+    location: GeocodingResult,
+    forecast: ForecastCurrent,
+    airQuality: AirQualityCurrent,
+  ): TodaySummary {
+    return {
+      locationName: this.formatLocationName(location),
+      timezone: location.timezone,
+      temperature: forecast.temperature_2m,
+      apparentTemperature: forecast.apparent_temperature,
+      weatherCode: forecast.weather_code,
+      isDay: forecast.is_day === 1,
+      windSpeed: forecast.wind_speed_10m,
+      pm10: airQuality.pm10,
+      pm2_5: airQuality.pm2_5,
+      europeanAqi: airQuality.european_aqi,
+    };
+  }
+
+  private formatLocationName(location: GeocodingResult): string {
+    const parts = [location.name];
+
+    if (location.admin1 && location.admin1 !== location.name) {
+      parts.push(location.admin1);
+    }
+
+    if (location.country) {
+      parts.push(location.country);
+    }
+
+    return parts.join(', ');
   }
 }

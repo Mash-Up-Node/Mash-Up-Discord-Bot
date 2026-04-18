@@ -6,13 +6,10 @@ import {
   INVALID_FORTUNE_INPUT,
   INVALID_GENDER,
 } from '../constants/today.messages';
-import { NaverFortuneResponse } from '../interfaces/today-api.interface';
-import { parseFortuneInput } from '../parsers/fortune-input.parser';
 import {
-  extractFortune,
-  selectFortuneHtml,
-} from '../parsers/naver-fortune.parser';
-import { parseJsonp } from '../parsers/naver-jsonp.parser';
+  parseFortuneInput,
+  parseFortuneResponse,
+} from '../parsers/fortune.parser';
 import { TodayFortune } from '../types/today-fortune.type';
 
 @Injectable()
@@ -38,18 +35,7 @@ export class TodayFortuneService {
         query,
         parsedInput,
       );
-      const payload = parseJsonp<NaverFortuneResponse>(response);
-      const html = selectFortuneHtml(payload, query);
-
-      if (!html) {
-        throw new Error('Missing fortune payload');
-      }
-
-      return extractFortune(
-        html,
-        parsedInput.genderLabel,
-        parsedInput.birthDate,
-      );
+      return parseFortuneResponse(response, query, parsedInput);
     } catch (error) {
       if (
         error instanceof Error &&

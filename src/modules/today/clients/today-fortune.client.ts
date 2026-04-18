@@ -3,7 +3,7 @@ import {
   FortuneQuery,
   NAVER_FORTUNE_ENDPOINT,
 } from '../constants/today.constants';
-import { ParsedFortuneInput } from '../parsers/fortune-input.parser';
+import { ParsedFortuneInput } from '../parsers/fortune.parser';
 
 @Injectable()
 export class TodayFortuneClient {

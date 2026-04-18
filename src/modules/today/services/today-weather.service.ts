@@ -9,7 +9,7 @@ import {
   AirQualityCurrent,
   ForecastCurrent,
   GeocodingResult,
-} from '../interfaces/today-api.interface';
+} from '../clients/types/today-api.type';
 import { TodaySummary } from '../types/today-summary.type';
 
 class LocationNotFoundError extends Error {

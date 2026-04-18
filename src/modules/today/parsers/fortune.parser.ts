@@ -4,7 +4,7 @@ import {
   INVALID_FORTUNE_INPUT,
   INVALID_GENDER,
 } from '../constants/today.messages';
-import { NaverFortuneResponse } from '../interfaces/today-api.interface';
+import { NaverFortuneResponse } from '../clients/types/today-api.type';
 import { TodayFortune } from '../types/today-fortune.type';
 
 export interface ParsedFortuneInput {

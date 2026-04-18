@@ -4,9 +4,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StudySessionEntity } from '../modules/study/entities/study-session.entity';
 import { UserEntity } from '../modules/score/entities/user.entity';
 import { TeamEntity } from '../modules/score/entities/team.entity';
+import { DiscordChannelEntity } from '../modules/shared/entities/discord-channel.entity';
 import { DATABASE_ERRORS } from '../constants/error-messages';
 
-const entities = [StudySessionEntity, UserEntity, TeamEntity];
+const entities = [DiscordChannelEntity, StudySessionEntity, UserEntity, TeamEntity];
 
 const dataSourceOptions: Record<
   string,

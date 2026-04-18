@@ -10,6 +10,7 @@ import { HealthModule } from './modules/health/health.module';
 import { KeepAliveModule } from './modules/keep-alive/keep-alive.module';
 import { DatabaseModule } from './database/database.module';
 import { TodayModule } from './modules/today/today.module';
+import { SharedModule } from './modules/shared/shared.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { TodayModule } from './modules/today/today.module';
       }),
     }),
     PingModule,
+    SharedModule,
     StudyModule,
     ScoreModule,
     TodayModule,

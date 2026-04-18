@@ -40,6 +40,27 @@ export class TicketacoService {
     return this.ticketacoRepository.getUpcomingEventEntries();
   }
 
+  async subscribeOrganization(
+    slug: string,
+    channelId: string,
+  ): Promise<{ created: boolean; slug: string; organizationName: string }> {
+    const trimmedSlug = slug.trim();
+    const { organization } =
+      await this.ticketacoApiClient.fetchOrganization(trimmedSlug);
+
+    const created = await this.ticketacoRepository.ensureSubscription({
+      slug: trimmedSlug,
+      organizationName: organization.name,
+      channelId,
+    });
+
+    return {
+      created,
+      slug: trimmedSlug,
+      organizationName: organization.name,
+    };
+  }
+
   private async syncOrganization(
     organization: TicketacoOrganization,
   ): Promise<void> {

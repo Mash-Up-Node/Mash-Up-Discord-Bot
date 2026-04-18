@@ -35,9 +35,16 @@ export interface TicketacoNotificationCandidate {
   event: TicketacoUpcomingEvent;
 }
 
+export interface EnsureTicketacoSubscriptionInput {
+  slug: string;
+  organizationName: string;
+  channelId: string;
+}
+
 export interface TicketacoRepository {
   getOrganizations(): Promise<TicketacoOrganization[]>;
   updateOrganizationName(organizationId: string, name: string): Promise<void>;
+  ensureSubscription(input: EnsureTicketacoSubscriptionInput): Promise<boolean>;
   upsertEvents(
     organizationId: string,
     events: UpsertTicketacoEventInput[],

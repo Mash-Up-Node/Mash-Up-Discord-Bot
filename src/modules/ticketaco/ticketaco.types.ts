@@ -7,3 +7,8 @@ export interface TicketacoUpcomingEvent {
   createdAt: string;
   venue: string | null;
 }
+
+export interface TicketacoUpcomingEventEntry {
+  orgName: string;
+  event: TicketacoUpcomingEvent;
+}

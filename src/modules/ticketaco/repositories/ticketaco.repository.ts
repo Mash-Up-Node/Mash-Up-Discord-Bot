@@ -1,4 +1,7 @@
-import { TicketacoUpcomingEvent } from '../ticketaco.types';
+import {
+  TicketacoUpcomingEvent,
+  TicketacoUpcomingEventEntry,
+} from '../ticketaco.types';
 
 export const TICKETACO_REPOSITORY = Symbol('TICKETACO_REPOSITORY');
 
@@ -47,4 +50,5 @@ export interface TicketacoRepository {
     subscriptionId: string,
     sentAt: Date,
   ): Promise<void>;
+  getUpcomingEventEntries(): Promise<TicketacoUpcomingEventEntry[]>;
 }

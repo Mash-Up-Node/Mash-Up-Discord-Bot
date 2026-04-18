@@ -39,3 +39,16 @@ export function buildTicketacoNotificationEmbed(
 
   return embed;
 }
+
+export function buildTicketacoListEmbed(
+  orgName: string,
+  event: TicketacoUpcomingEvent,
+): EmbedBuilder {
+  const embed = buildBaseEmbed(event).setDescription(orgName);
+
+  if (event.imageUrl) {
+    embed.setThumbnail(event.imageUrl);
+  }
+
+  return embed;
+}

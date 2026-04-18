@@ -11,6 +11,7 @@ import { StudyService } from './study.service';
 import { StudyListener } from './study.listener';
 import { StudyCommands } from './study.commands';
 import { CategoryService } from './category.service';
+import { CategoryCommands } from './category.commands';
 
 @Module({
   imports: [TypeOrmModule.forFeature([StudySessionEntity, CategoryEntity])],
@@ -31,6 +32,7 @@ import { CategoryService } from './category.service';
     StudyListener,
     StudyCommands,
     CategoryService,
+    CategoryCommands,
   ],
 })
 export class StudyModule {}

@@ -55,6 +55,7 @@ function createWeatherAdvice(
 ): string[] {
   const tips: string[] = [];
 
+  // AQI 기반 기본 안내 외에 현재 날씨 상황에 맞는 생활 팁을 덧붙인다.
   if (RAINY_WEATHER_CODES.has(summary.weatherCode)) {
     tips.push(pickRandom(WEATHER_ADVICE_MESSAGES.RAIN, random));
   }
@@ -78,6 +79,7 @@ export function formatTodaySummary(
   summary: TodaySummary,
   random: RandomSource = Math.random,
 ): string {
+  // random 주입을 열어둬서 테스트에서는 고정된 문구를 검증할 수 있게 한다.
   const airQuality = getAirQualityBand(summary.europeanAqi);
   const pm10Label = getDustBand(summary.pm10, PM10_BANDS);
   const pm2_5Label = getDustBand(summary.pm2_5, PM2_5_BANDS);

@@ -54,6 +54,7 @@ export class TodayWeatherService {
 
   private async resolveLocation(location: string): Promise<GeocodingResult> {
     try {
+      // 한글 지역명이 바로 매칭되지 않으면 Open-Meteo가 잘 찾는 영문 별칭으로 한 번 더 조회한다.
       const result =
         (await this.weatherClient.searchLocation(location)) ??
         (await this.weatherClient.searchLocation(

@@ -37,6 +37,8 @@ export class TodayFortuneService {
       );
       return parseFortuneResponse(response, query, parsedInput);
     } catch (error) {
+      // 사용자 입력 검증 에러는 그대로 노출하고,
+      // 공급자 호출/파싱 실패는 사용자용 공통 메시지로 변환한다.
       if (
         error instanceof Error &&
         (error.message === INVALID_FORTUNE_INPUT ||

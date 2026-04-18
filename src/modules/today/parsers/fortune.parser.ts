@@ -84,8 +84,9 @@ function selectFortuneHtml(
 ): string | undefined {
   const panels = payload.flick ?? [];
 
+  // 네이버 flick 배열은 보통 [오늘, 내일] 순서
   if (query === FORTUNE_QUERIES.TOMORROW) {
-    return panels[1] ?? panels[0];
+    return panels[1];
   }
 
   return panels[0];
@@ -96,6 +97,8 @@ function extractFortune(
   gender: '남자' | '여자',
   birthDate: string,
 ): TodayFortune {
+  // 네이버 운세 HTML 마크업 계약에 의존해 필요한 필드를 추출한다.
+  // 공급자 마크업이 바뀌면 여기서 파싱이 깨지고 상위 service가 공통 에러로 감싼다.
   const keywordMatch = html.match(
     /<strong>운세의 총운은\s*<b>(.*?)<\/b>\s*입니다<\/strong>/,
   );

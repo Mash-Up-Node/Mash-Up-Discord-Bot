@@ -71,12 +71,14 @@ export class TodayCommands {
     let hasDeferred = false;
 
     try {
+      // 외부 API 호출이 있어 Discord 응답 제한 시간을 넘길 수 있으므로 먼저 defer한다.
       await interaction.deferReply();
       hasDeferred = true;
 
       const content = await resolver();
       await interaction.editReply({ content });
     } catch (error) {
+      // 이미 만료된 interaction이면 추가 응답 시도도 실패하므로 그대로 종료한다.
       if (isUnknownInteractionError(error)) {
         return;
       }
@@ -84,6 +86,7 @@ export class TodayCommands {
       const message =
         error instanceof Error ? error.message : TODAY_COMMAND_FAILED;
 
+      // defer 이후에는 editReply, 아니면 reply로 응답한다.
       if (hasDeferred) {
         await safeEditReply(interaction, message);
         return;

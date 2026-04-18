@@ -1,17 +1,19 @@
 import {
   EUROPEAN_AQI_BANDS,
-  FOGGY_WEATHER_CODES,
   PM10_BANDS,
   PM2_5_BANDS,
+} from '../constants/air-quality.constants';
+import {
+  FOGGY_WEATHER_CODES,
   RAINY_WEATHER_CODES,
   SNOWY_WEATHER_CODES,
-} from '../constants/air-quality.constants';
-import { WEATHER_ADVICE_MESSAGES } from '../constants/today.messages';
+  WEATHER_ADVICE_MESSAGES,
+} from '../constants/weather-advice.constants';
 import { WEATHER_CODE_LABELS } from '../constants/weather-codes';
-import { TodayFortune } from '../types/today-fortune.type';
 import { TodaySummary } from '../types/today-summary.type';
 
-// Open-Meteo 날씨 코드의 사용자용 라벨 변환
+type RandomSource = () => number;
+
 export function formatWeatherCode(weatherCode: number, isDay: boolean): string {
   const label = WEATHER_CODE_LABELS[weatherCode];
 
@@ -26,7 +28,6 @@ export function formatNumber(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
-// AQI 구간 탐색 및 등급/안내 재사용
 function getAirQualityBand(aqi: number) {
   return (
     EUROPEAN_AQI_BANDS.find((band) => aqi <= band.max) ??
@@ -34,7 +35,6 @@ function getAirQualityBand(aqi: number) {
   );
 }
 
-// PM10/PM2.5 공통 구간 라벨 탐색
 function getDustBand(
   value: number,
   bands: Array<{ max: number; label: string }>,
@@ -45,35 +45,46 @@ function getDustBand(
   );
 }
 
-// 공기질 기본 안내 위의 날씨 상황별 안내 추가
-function createWeatherAdvice(summary: TodaySummary): string[] {
+function pickRandom<T>(candidates: readonly T[], random: RandomSource): T {
+  return candidates[Math.floor(random() * candidates.length)];
+}
+
+function createWeatherAdvice(
+  summary: TodaySummary,
+  random: RandomSource,
+): string[] {
   const tips: string[] = [];
 
   if (RAINY_WEATHER_CODES.has(summary.weatherCode)) {
-    tips.push(WEATHER_ADVICE_MESSAGES.RAIN);
+    tips.push(pickRandom(WEATHER_ADVICE_MESSAGES.RAIN, random));
   }
 
   if (SNOWY_WEATHER_CODES.has(summary.weatherCode)) {
-    tips.push(WEATHER_ADVICE_MESSAGES.SNOW);
+    tips.push(pickRandom(WEATHER_ADVICE_MESSAGES.SNOW, random));
   }
 
   if (FOGGY_WEATHER_CODES.has(summary.weatherCode)) {
-    tips.push(WEATHER_ADVICE_MESSAGES.FOG);
+    tips.push(pickRandom(WEATHER_ADVICE_MESSAGES.FOG, random));
   }
 
   if (summary.windSpeed >= 20) {
-    tips.push(WEATHER_ADVICE_MESSAGES.WIND);
+    tips.push(pickRandom(WEATHER_ADVICE_MESSAGES.WIND, random));
   }
 
   return tips;
 }
 
-// 날씨 조회 결과의 디스코드 메시지 요약 변환
-export function formatTodaySummary(summary: TodaySummary): string {
+export function formatTodaySummary(
+  summary: TodaySummary,
+  random: RandomSource = Math.random,
+): string {
   const airQuality = getAirQualityBand(summary.europeanAqi);
   const pm10Label = getDustBand(summary.pm10, PM10_BANDS);
   const pm2_5Label = getDustBand(summary.pm2_5, PM2_5_BANDS);
-  const lifestyleTips = [airQuality.advice, ...createWeatherAdvice(summary)];
+  const lifestyleTips = [
+    pickRandom(airQuality.advices, random),
+    ...createWeatherAdvice(summary, random),
+  ];
 
   return [
     `**${summary.locationName}**`,
@@ -86,19 +97,5 @@ export function formatTodaySummary(summary: TodaySummary): string {
     '',
     `한줄 팁: ${lifestyleTips.join(' ')}`,
     `시간대: ${summary.timezone}`,
-  ].join('\n');
-}
-
-// 오늘/내일 운세 공통 메시지 렌더링
-export function formatTodayFortune(
-  fortune: TodayFortune,
-  title = '오늘의 운세',
-): string {
-  return [
-    `**${title}**`,
-    `입력: ${fortune.gender} / ${fortune.birthDate}`,
-    `총운 키워드: ${fortune.keyword}`,
-    `기준일: ${fortune.date}`,
-    `총운: ${fortune.summary}`,
   ].join('\n');
 }

@@ -5,11 +5,9 @@ import {
   createLocationNotFoundMessage,
   WEATHER_FETCH_FAILED,
 } from '../constants/today.messages';
-import {
-  GeocodingResult,
-} from '../interfaces/today-api.interface';
+import { GeocodingResult } from '../interfaces/today-api.interface';
+import { toTodaySummary } from '../mappers/today-summary.mapper';
 import { TodaySummary } from '../types/today-summary.type';
-import { toTodaySummary } from '../utils/weather-summary.util';
 
 class LocationNotFoundError extends Error {
   constructor(location: string) {

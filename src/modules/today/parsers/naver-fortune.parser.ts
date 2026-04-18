@@ -1,8 +1,7 @@
-import { FortuneQuery, FORTUNE_QUERIES } from '../constants/today.constants';
-import { TodayFortune } from '../types/today-fortune.type';
+import { FORTUNE_QUERIES, FortuneQuery } from '../constants/today.constants';
 import { NaverFortuneResponse } from '../interfaces/today-api.interface';
+import { TodayFortune } from '../types/today-fortune.type';
 
-// 공급자 HTML의 일반 텍스트 정리
 function stripHtml(input: string): string {
   return input
     .replace(/<br\s*\/?>/gi, '\n')
@@ -15,7 +14,6 @@ function stripHtml(input: string): string {
     .trim();
 }
 
-// flick 배열의 오늘/내일 운세 패널 선택
 export function selectFortuneHtml(
   payload: NaverFortuneResponse,
   query: FortuneQuery,
@@ -29,7 +27,6 @@ export function selectFortuneHtml(
   return panels[0];
 }
 
-// 공급자 HTML 조각의 노출 필드 추출
 export function extractFortune(
   html: string,
   gender: '남자' | '여자',

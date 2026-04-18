@@ -9,12 +9,10 @@ import { DEFAULT_LOCATION } from './constants/today.constants';
 import { TODAY_COMMAND_FAILED } from './constants/today.messages';
 import { TodayFortuneQueryDto } from './dto/today-fortune-query.dto';
 import { TodayWeatherQueryDto } from './dto/today-weather-query.dto';
+import { formatTodayFortune } from './formatters/today-fortune-message.formatter';
+import { formatTodaySummary } from './formatters/today-weather-message.formatter';
 import { TodayFortuneService } from './services/today-fortune.service';
 import { TodayWeatherService } from './services/today-weather.service';
-import {
-  formatTodayFortune,
-  formatTodaySummary,
-} from './utils/today-formatters';
 
 @Injectable()
 export class TodayCommands {

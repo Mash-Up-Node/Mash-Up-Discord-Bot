@@ -11,7 +11,6 @@ export interface ParsedFortuneInput {
   birthDateCompact: string;
 }
 
-// 축약형/영문 성별 입력의 공급자 형식 정규화
 const GENDER_MAP = new Map<string, { code: 'm' | 'f'; label: '남자' | '여자' }>(
   [
     ['남자', { code: 'm', label: '남자' }],
@@ -25,7 +24,6 @@ const GENDER_MAP = new Map<string, { code: 'm' | 'f'; label: '남자' | '여자'
   ],
 );
 
-// 슬래시 커맨드 문자열의 네이버 API 요청 필드 파싱
 export function parseFortuneInput(rawInput: string): ParsedFortuneInput {
   const [rawGender, rawBirthDate] = rawInput
     .split(',')

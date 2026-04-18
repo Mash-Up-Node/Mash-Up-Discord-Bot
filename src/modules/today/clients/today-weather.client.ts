@@ -11,40 +11,43 @@ import {
   GeocodingResult,
 } from '../interfaces/today-api.interface';
 
+const FORECAST_CURRENT_FIELDS = [
+  'temperature_2m',
+  'apparent_temperature',
+  'weather_code',
+  'wind_speed_10m',
+  'is_day',
+];
+
+const AIR_QUALITY_CURRENT_FIELDS = ['pm10', 'pm2_5', 'european_aqi'];
+
 @Injectable()
 export class TodayWeatherClient {
-  // Open-Meteo 첫 번째 좌표 후보 검색
   async searchLocation(locationQuery: string): Promise<GeocodingResult | null> {
     if (!locationQuery) {
       return null;
     }
 
-    const url = new URL(OPEN_METEO_GEOCODING_ENDPOINT);
-    url.searchParams.set('name', locationQuery);
-    url.searchParams.set('count', '1');
-    url.searchParams.set('language', 'ko');
-
-    const response = await this.fetchJson<GeocodingResponse>(url);
+    const response = await this.fetchJson<GeocodingResponse>(
+      this.createGeocodingUrl(locationQuery),
+    );
     return response.results?.[0] ?? null;
   }
 
-  // 현재 날씨 조회
   async getForecast(
     latitude: number,
     longitude: number,
   ): Promise<ForecastResponse> {
     return this.fetchJson<ForecastResponse>(
-      this.createCurrentUrl(OPEN_METEO_FORECAST_ENDPOINT, latitude, longitude, [
-        'temperature_2m',
-        'apparent_temperature',
-        'weather_code',
-        'wind_speed_10m',
-        'is_day',
-      ]),
+      this.createCurrentUrl(
+        OPEN_METEO_FORECAST_ENDPOINT,
+        latitude,
+        longitude,
+        FORECAST_CURRENT_FIELDS,
+      ),
     );
   }
 
-  // 현재 공기질 조회
   async getAirQuality(
     latitude: number,
     longitude: number,
@@ -54,12 +57,21 @@ export class TodayWeatherClient {
         OPEN_METEO_AIR_QUALITY_ENDPOINT,
         latitude,
         longitude,
-        ['pm10', 'pm2_5', 'european_aqi'],
+        AIR_QUALITY_CURRENT_FIELDS,
       ),
     );
   }
 
-  // 엔드포인트별 current 필드 구성
+  private createGeocodingUrl(locationQuery: string): URL {
+    const url = new URL(OPEN_METEO_GEOCODING_ENDPOINT);
+    url.searchParams.set('name', locationQuery);
+    url.searchParams.set('count', '1');
+    url.searchParams.set('language', 'ko');
+    return url;
+  }
+
+  // forecast / air-quality는 current 필드만 다르고
+  // 나머지 쿼리 스켈레톤은 같아서 여기서 같이 조립한다.
   private createCurrentUrl(
     baseUrl: string,
     latitude: number,
@@ -74,7 +86,6 @@ export class TodayWeatherClient {
     return url;
   }
 
-  // Open-Meteo JSON 응답 요청
   private async fetchJson<T>(url: URL): Promise<T> {
     const response = await fetch(url);
 

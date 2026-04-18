@@ -3,7 +3,7 @@ import {
   FortuneQuery,
   NAVER_FORTUNE_ENDPOINT,
 } from '../constants/today.constants';
-import { ParsedFortuneInput } from '../utils/fortune-input.util';
+import { ParsedFortuneInput } from '../parsers/fortune-input.parser';
 
 @Injectable()
 export class TodayFortuneClient {
@@ -21,11 +21,6 @@ export class TodayFortuneClient {
     url.searchParams.set('u2', input.birthDateCompact);
     url.searchParams.set('u3', 'solar');
 
-    return this.fetchText(url);
-  }
-
-  // 네이버 텍스트 응답 요청
-  private async fetchText(url: URL): Promise<string> {
     const response = await fetch(url);
 
     if (!response.ok) {

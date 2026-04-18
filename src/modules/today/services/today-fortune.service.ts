@@ -7,10 +7,13 @@ import {
   INVALID_GENDER,
 } from '../constants/today.messages';
 import { NaverFortuneResponse } from '../interfaces/today-api.interface';
+import { parseFortuneInput } from '../parsers/fortune-input.parser';
+import {
+  extractFortune,
+  selectFortuneHtml,
+} from '../parsers/naver-fortune.parser';
+import { parseJsonp } from '../parsers/naver-jsonp.parser';
 import { TodayFortune } from '../types/today-fortune.type';
-import { parseFortuneInput } from '../utils/fortune-input.util';
-import { extractFortune, selectFortuneHtml } from '../utils/naver-fortune.util';
-import { parseJsonp } from '../utils/naver-jsonp.util';
 
 @Injectable()
 export class TodayFortuneService {

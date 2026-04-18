@@ -18,3 +18,14 @@ CREATE INDEX idx_study_sessions_user_active
 CREATE INDEX idx_study_sessions_user_duration
   ON study_sessions(user_id) WHERE duration IS NOT NULL;
 
+-- 3. categories 테이블 (공부 시간 추적 대상 Discord 카테고리 목록)
+CREATE TABLE categories (
+  id SERIAL PRIMARY KEY,
+  category_id TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL
+);
+
+-- 4. 초기 시드 (기존 .env의 STUDY_CATEGORY_ID 값)
+INSERT INTO categories (category_id, name) VALUES
+  ('782054242399158333', 'Node');
+

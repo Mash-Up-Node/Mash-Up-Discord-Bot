@@ -12,21 +12,21 @@ export class TodayFortuneClient {
     query: FortuneQuery,
     input: ParsedFortuneInput,
   ): Promise<string> {
-    const url = new URL(NAVER_FORTUNE_ENDPOINT);
-    url.searchParams.set('where', 'nexearch');
-    url.searchParams.set('pkid', '387');
-    url.searchParams.set('_callback', 'fortuneCallback');
-    url.searchParams.set('q', query);
-    url.searchParams.set('u1', input.genderCode);
-    url.searchParams.set('u2', input.birthDateCompact);
-    url.searchParams.set('u3', 'solar');
+    const fortuneUrl = new URL(NAVER_FORTUNE_ENDPOINT);
+    fortuneUrl.searchParams.set('where', 'nexearch');
+    fortuneUrl.searchParams.set('pkid', '387');
+    fortuneUrl.searchParams.set('_callback', 'fortuneCallback');
+    fortuneUrl.searchParams.set('q', query);
+    fortuneUrl.searchParams.set('u1', input.genderCode);
+    fortuneUrl.searchParams.set('u2', input.birthDateCompact);
+    fortuneUrl.searchParams.set('u3', 'solar');
 
-    const response = await fetch(url);
+    const fortuneResponse = await fetch(fortuneUrl);
 
-    if (!response.ok) {
-      throw new Error(`Naver request failed: ${response.status}`);
+    if (!fortuneResponse.ok) {
+      throw new Error(`Naver request failed: ${fortuneResponse.status}`);
     }
 
-    return response.text();
+    return fortuneResponse.text();
   }
 }

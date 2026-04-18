@@ -8,6 +8,7 @@ import { UserTypeormRepository } from './repositories/user.typeorm-repository';
 import { TEAM_REPOSITORY } from './repositories/team.repository';
 import { TeamTypeormRepository } from './repositories/team.typeorm-repository';
 import { ScoreService } from './score.service';
+import { UserService } from './user.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity, TeamEntity])],
@@ -25,7 +26,8 @@ import { ScoreService } from './score.service';
         new TeamTypeormRepository(repo),
     },
     ScoreService,
+    UserService,
   ],
-  exports: [ScoreService],
+  exports: [ScoreService, UserService],
 })
 export class ScoreModule {}

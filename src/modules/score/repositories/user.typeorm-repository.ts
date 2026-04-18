@@ -18,10 +18,11 @@ export class UserTypeormRepository implements UserRepository {
     nickname: string;
     generation: number;
     department: Department;
+    isAdmin?: boolean;
   }): Promise<UserEntity> {
     const user = this.repo.create({
       ...data,
-      isAdmin: false,
+      isAdmin: data.isAdmin ?? false,
       teamId: null,
       score: 0,
     });

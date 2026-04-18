@@ -10,6 +10,7 @@ export interface UserRepository {
     nickname: string;
     generation: number;
     department: Department;
+    isAdmin?: boolean;
   }): Promise<UserEntity>;
   update(
     discordId: string,

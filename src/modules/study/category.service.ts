@@ -17,26 +17,20 @@ export class CategoryService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     const categories = await this.repository.findAll();
     for (const category of categories) {
-      this.ids.add(category.id);
+      this.ids.add(category.categoryId);
     }
   }
 
-  has(id: string): boolean {
-    return this.ids.has(id);
+  has(categoryId: string): boolean {
+    return this.ids.has(categoryId);
   }
 
-  async add(id: string, name: string): Promise<boolean> {
-    if (this.ids.has(id)) return false;
+  async add(categoryId: string, name: string): Promise<boolean> {
+    if (this.ids.has(categoryId)) return false;
 
-    await this.repository.insert(id, name);
-    this.ids.add(id);
+    await this.repository.insert(categoryId, name);
+    this.ids.add(categoryId);
     return true;
-  }
-
-  async remove(id: string): Promise<boolean> {
-    const deleted = await this.repository.deleteById(id);
-    if (deleted) this.ids.delete(id);
-    return deleted;
   }
 
   async list(): Promise<Category[]> {

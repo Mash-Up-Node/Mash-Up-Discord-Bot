@@ -3,7 +3,6 @@ import { MessageFlags } from 'discord.js';
 import { Context, Options, SlashCommand, SlashCommandContext } from 'necord';
 import { CategoryService } from './category.service';
 import { CategoryAddDto } from './dto/category-add.dto';
-import { CategoryRemoveDto } from './dto/category-remove.dto';
 
 @Injectable()
 export class CategoryCommands {
@@ -29,25 +28,6 @@ export class CategoryCommands {
   }
 
   @SlashCommand({
-    name: '카테고리삭제',
-    description: '공부 시간 추적 대상 카테고리를 삭제합니다.',
-  })
-  async onRemove(
-    @Context() [interaction]: SlashCommandContext,
-    @Options() dto: CategoryRemoveDto,
-  ): Promise<void> {
-    const { id, name } = dto.category;
-    const removed = await this.categoryService.remove(id);
-
-    await interaction.reply({
-      content: removed
-        ? `${name} 카테고리를 삭제했습니다.`
-        : `${name} 카테고리는 등록되어 있지 않습니다.`,
-      flags: MessageFlags.Ephemeral,
-    });
-  }
-
-  @SlashCommand({
     name: '카테고리목록',
     description: '등록된 공부 카테고리 목록을 확인합니다.',
   })
@@ -64,7 +44,7 @@ export class CategoryCommands {
 
     const lines = categories.map(
       (category, index) =>
-        `${index + 1}. ${category.name} (id: ${category.id})`,
+        `${index + 1}. ${category.name} (id: ${category.categoryId})`,
     );
 
     await interaction.reply({

@@ -9,17 +9,12 @@ export class CategoryTypeormRepository implements CategoryRepository {
     return this.repo.find();
   }
 
-  async findById(id: string): Promise<Category | null> {
-    return this.repo.findOne({ where: { id } });
+  async findByCategoryId(categoryId: string): Promise<Category | null> {
+    return this.repo.findOne({ where: { categoryId } });
   }
 
-  async insert(id: string, name: string): Promise<Category> {
-    const category = this.repo.create({ id, name });
+  async insert(categoryId: string, name: string): Promise<Category> {
+    const category = this.repo.create({ categoryId, name });
     return this.repo.save(category);
-  }
-
-  async deleteById(id: string): Promise<boolean> {
-    const result = await this.repo.delete({ id });
-    return (result.affected ?? 0) > 0;
   }
 }

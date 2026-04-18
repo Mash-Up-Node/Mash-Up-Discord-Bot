@@ -1,7 +1,6 @@
 import { CategoryCommands } from '../category.commands';
 import { CategoryService } from '../category.service';
 import { CategoryAddDto } from '../dto/category-add.dto';
-import { CategoryRemoveDto } from '../dto/category-remove.dto';
 
 describe('CategoryCommands', () => {
   let commands: CategoryCommands;
@@ -16,7 +15,6 @@ describe('CategoryCommands', () => {
   beforeEach(() => {
     mockService = {
       add: jest.fn(),
-      remove: jest.fn(),
       list: jest.fn(),
       has: jest.fn(),
     };
@@ -57,39 +55,6 @@ describe('CategoryCommands', () => {
     });
   });
 
-  describe('/카테고리삭제', () => {
-    it('삭제에 성공하면 성공 메시지를 보낸다', async () => {
-      mockService.remove.mockResolvedValue(true);
-      const interaction = createMockInteraction();
-      const dto = new CategoryRemoveDto();
-      dto.category = { id: 'cat-1', name: '스터디A' } as never;
-
-      await commands.onRemove([interaction] as never, dto);
-
-      expect(mockService.remove).toHaveBeenCalledWith('cat-1');
-      expect(interaction.reply).toHaveBeenCalledWith(
-        expect.objectContaining({
-          content: expect.stringContaining('삭제했습니다') as string,
-        }),
-      );
-    });
-
-    it('등록되지 않은 카테고리면 안내 메시지를 보낸다', async () => {
-      mockService.remove.mockResolvedValue(false);
-      const interaction = createMockInteraction();
-      const dto = new CategoryRemoveDto();
-      dto.category = { id: 'cat-1', name: '스터디A' } as never;
-
-      await commands.onRemove([interaction] as never, dto);
-
-      expect(interaction.reply).toHaveBeenCalledWith(
-        expect.objectContaining({
-          content: expect.stringContaining('등록되어 있지 않') as string,
-        }),
-      );
-    });
-  });
-
   describe('/카테고리목록', () => {
     it('등록된 카테고리가 없으면 안내 메시지를 보낸다', async () => {
       mockService.list.mockResolvedValue([]);
@@ -106,8 +71,8 @@ describe('CategoryCommands', () => {
 
     it('목록을 표시한다', async () => {
       mockService.list.mockResolvedValue([
-        { id: 'cat-1', name: '스터디A' },
-        { id: 'cat-2', name: '스터디B' },
+        { id: 1, categoryId: 'cat-1', name: '스터디A' },
+        { id: 2, categoryId: 'cat-2', name: '스터디B' },
       ]);
       const interaction = createMockInteraction();
 

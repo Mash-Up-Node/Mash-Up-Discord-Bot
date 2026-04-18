@@ -10,9 +10,8 @@ describe('CategoryService', () => {
   beforeEach(async () => {
     mockRepo = {
       findAll: jest.fn().mockResolvedValue([]),
-      findById: jest.fn(),
+      findByCategoryId: jest.fn(),
       insert: jest.fn(),
-      deleteById: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -26,10 +25,10 @@ describe('CategoryService', () => {
   });
 
   describe('onModuleInit', () => {
-    it('DB에 저장된 카테고리 id를 메모리 Set으로 로드한다', async () => {
+    it('DB에 저장된 카테고리의 category_id를 메모리 Set으로 로드한다', async () => {
       const stored: Category[] = [
-        { id: 'cat-1', name: 'A' },
-        { id: 'cat-2', name: 'B' },
+        { id: 1, categoryId: 'cat-1', name: 'A' },
+        { id: 2, categoryId: 'cat-2', name: 'B' },
       ];
       mockRepo.findAll.mockResolvedValue(stored);
 
@@ -48,8 +47,12 @@ describe('CategoryService', () => {
   });
 
   describe('add', () => {
-    it('새 id는 DB에 저장하고 Set에 추가한 뒤 true를 반환한다', async () => {
-      mockRepo.insert.mockResolvedValue({ id: 'cat-1', name: 'A' });
+    it('새 category_id는 DB에 저장하고 Set에 추가한 뒤 true를 반환한다', async () => {
+      mockRepo.insert.mockResolvedValue({
+        id: 1,
+        categoryId: 'cat-1',
+        name: 'A',
+      });
 
       const added = await service.add('cat-1', 'A');
 
@@ -58,8 +61,10 @@ describe('CategoryService', () => {
       expect(service.has('cat-1')).toBe(true);
     });
 
-    it('이미 등록된 id면 false를 반환하고 DB를 호출하지 않는다', async () => {
-      mockRepo.findAll.mockResolvedValue([{ id: 'cat-1', name: 'A' }]);
+    it('이미 등록된 category_id면 false를 반환하고 DB를 호출하지 않는다', async () => {
+      mockRepo.findAll.mockResolvedValue([
+        { id: 1, categoryId: 'cat-1', name: 'A' },
+      ]);
       await service.onModuleInit();
 
       const added = await service.add('cat-1', 'A-new');
@@ -69,32 +74,11 @@ describe('CategoryService', () => {
     });
   });
 
-  describe('remove', () => {
-    it('삭제 성공 시 Set에서 제거하고 true를 반환한다', async () => {
-      mockRepo.findAll.mockResolvedValue([{ id: 'cat-1', name: 'A' }]);
-      await service.onModuleInit();
-      mockRepo.deleteById.mockResolvedValue(true);
-
-      const removed = await service.remove('cat-1');
-
-      expect(removed).toBe(true);
-      expect(service.has('cat-1')).toBe(false);
-    });
-
-    it('존재하지 않으면 false를 반환한다', async () => {
-      mockRepo.deleteById.mockResolvedValue(false);
-
-      const removed = await service.remove('missing');
-
-      expect(removed).toBe(false);
-    });
-  });
-
   describe('list', () => {
     it('DB의 전체 카테고리를 반환한다', async () => {
       const stored: Category[] = [
-        { id: 'cat-1', name: 'A' },
-        { id: 'cat-2', name: 'B' },
+        { id: 1, categoryId: 'cat-1', name: 'A' },
+        { id: 2, categoryId: 'cat-2', name: 'B' },
       ];
       mockRepo.findAll.mockResolvedValue(stored);
 

@@ -1,15 +1,19 @@
-import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('categories')
 export class CategoryEntity {
-  @PrimaryColumn({ type: 'varchar' })
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column({ name: 'category_id', type: 'varchar', unique: true })
+  categoryId!: string;
 
   @Column({ type: 'varchar' })
   name!: string;
 }
 
 export interface Category {
-  id: string;
+  id: number;
+  categoryId: string;
   name: string;
 }

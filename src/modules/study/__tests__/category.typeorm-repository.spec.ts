@@ -39,45 +39,36 @@ describe('CategoryTypeormRepository', () => {
     });
   });
 
-  describe('findById', () => {
+  describe('findByCategoryId', () => {
     it('존재하지 않으면 null을 반환한다', async () => {
-      const category = await repo.findById('missing');
+      const category = await repo.findByCategoryId('missing');
       expect(category).toBeNull();
     });
 
     it('존재하면 해당 카테고리를 반환한다', async () => {
       await repo.insert('cat-1', '스터디A');
 
-      const category = await repo.findById('cat-1');
+      const category = await repo.findByCategoryId('cat-1');
 
       expect(category).not.toBeNull();
-      expect(category!.id).toBe('cat-1');
+      expect(category!.categoryId).toBe('cat-1');
       expect(category!.name).toBe('스터디A');
     });
   });
 
   describe('insert', () => {
-    it('새 카테고리를 저장하고 반환한다', async () => {
+    it('새 카테고리를 저장하고 자동 생성 id와 함께 반환한다', async () => {
       const category = await repo.insert('cat-1', '스터디A');
 
-      expect(category.id).toBe('cat-1');
+      expect(category.id).toEqual(expect.any(Number));
+      expect(category.categoryId).toBe('cat-1');
       expect(category.name).toBe('스터디A');
     });
-  });
 
-  describe('deleteById', () => {
-    it('존재하지 않는 id면 false를 반환한다', async () => {
-      const deleted = await repo.deleteById('missing');
-      expect(deleted).toBe(false);
-    });
-
-    it('삭제에 성공하면 true를 반환한다', async () => {
+    it('같은 category_id로 중복 insert하면 에러를 던진다', async () => {
       await repo.insert('cat-1', '스터디A');
 
-      const deleted = await repo.deleteById('cat-1');
-
-      expect(deleted).toBe(true);
-      expect(await repo.findById('cat-1')).toBeNull();
+      await expect(repo.insert('cat-1', '스터디A')).rejects.toBeDefined();
     });
   });
 });

@@ -1,5 +1,6 @@
 import {
-  EUROPEAN_AQI_BANDS,
+  AIR_QUALITY_ADVICES,
+  DustLabel,
   PM10_BANDS,
   PM2_5_BANDS,
 } from '../constants/air-quality.constants';
@@ -31,23 +32,29 @@ export function formatNumber(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
-// AQI 수치를 미리 정의한 구간 정보로 매핑한다.
-function getAirQualityBand(aqi: number) {
-  return (
-    EUROPEAN_AQI_BANDS.find((band) => aqi <= band.max) ??
-    EUROPEAN_AQI_BANDS[EUROPEAN_AQI_BANDS.length - 1]
-  );
-}
-
 // PM10 / PM2.5 수치를 공통 로직으로 등급 라벨에 매핑한다.
 function getDustBand(
   value: number,
-  bands: Array<{ max: number; label: string }>,
-): string {
+  bands: Array<{ max: number; label: DustLabel }>,
+): DustLabel {
   return (
     bands.find((band) => value <= band.max)?.label ??
     bands[bands.length - 1].label
   );
+}
+
+function getRepresentativeAirQualityLabel(
+  pm10Label: DustLabel,
+  pm2_5Label: DustLabel,
+): DustLabel {
+  const severity: Record<DustLabel, number> = {
+    좋음: 0,
+    보통: 1,
+    나쁨: 2,
+    '매우 나쁨': 3,
+  };
+
+  return severity[pm10Label] >= severity[pm2_5Label] ? pm10Label : pm2_5Label;
 }
 
 // 랜덤 조언 문구 선택 로직을 테스트 가능하게 분리한다.
@@ -61,7 +68,7 @@ function createWeatherAdvice(
 ): string[] {
   const tips: string[] = [];
 
-  // AQI 기반 기본 안내 외에 현재 날씨 상황에 맞는 생활 팁을 덧붙인다.
+  // 공기질 기본 안내 외에 현재 날씨 상황에 맞는 생활 팁을 덧붙인다.
   if (RAINY_WEATHER_CODES.has(summary.weatherCode)) {
     tips.push(pickRandom(WEATHER_ADVICE_MESSAGES.RAIN, random));
   }
@@ -109,11 +116,11 @@ export function formatTodaySummary(
   now: NowSource = new Date(),
 ): string {
   // random / now 주입을 열어둬서 테스트에서는 고정된 문구와 시각을 검증할 수 있게 한다.
-  const airQuality = getAirQualityBand(summary.europeanAqi);
   const pm10Label = getDustBand(summary.pm10, PM10_BANDS);
   const pm2_5Label = getDustBand(summary.pm2_5, PM2_5_BANDS);
+  const airQualityLabel = getRepresentativeAirQualityLabel(pm10Label, pm2_5Label);
   const lifestyleTips = [
-    pickRandom(airQuality.advices, random),
+    pickRandom(AIR_QUALITY_ADVICES[airQualityLabel], random),
     ...createWeatherAdvice(summary, random),
   ];
   const currentTime = formatCurrentTime(summary.timezone, now);
@@ -123,7 +130,7 @@ export function formatTodaySummary(
     `현재 날씨: ${formatWeatherCode(summary.weatherCode, summary.isDay)}`,
     `기온 ${formatNumber(summary.temperature)}°C · 체감 ${formatNumber(summary.apparentTemperature)}°C · 바람 ${formatNumber(summary.windSpeed)}km/h`,
     '',
-    `공기질: ${airQuality.label} (AQI ${formatNumber(summary.europeanAqi)})`,
+    `공기질: ${airQualityLabel}`,
     `미세먼지: ${pm10Label} (PM10 ${formatNumber(summary.pm10)}μg/m³)`,
     `초미세먼지: ${pm2_5Label} (PM2.5 ${formatNumber(summary.pm2_5)}μg/m³)`,
     '',

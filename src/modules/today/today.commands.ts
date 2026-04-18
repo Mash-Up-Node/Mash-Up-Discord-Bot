@@ -7,8 +7,10 @@ import {
 } from '../../common/discord/interaction-response.util';
 import { DEFAULT_LOCATION } from './constants/today.constants';
 import { TODAY_COMMAND_FAILED } from './constants/today.messages';
-import { TodayQueryDto } from './dto/today-query.dto';
-import { TodayService } from './today.service';
+import { TodayFortuneQueryDto } from './dto/today-fortune-query.dto';
+import { TodayWeatherQueryDto } from './dto/today-weather-query.dto';
+import { TodayFortuneService } from './services/today-fortune.service';
+import { TodayWeatherService } from './services/today-weather.service';
 import {
   formatTodayFortune,
   formatTodaySummary,
@@ -16,45 +18,66 @@ import {
 
 @Injectable()
 export class TodayCommands {
-  constructor(private readonly todayService: TodayService) {}
+  constructor(
+    private readonly weatherService: TodayWeatherService,
+    private readonly fortuneService: TodayFortuneService,
+  ) {}
 
   @SlashCommand({
-    name: '오늘',
-    description: '오늘의 날씨, 미세먼지, 오늘/내일 운세를 조회합니다.',
+    name: '오늘날씨',
+    description: '오늘의 날씨와 미세먼지를 조회합니다.',
   })
-  // 옵션 우선순위에 따른 운세/날씨 분기 진입점
-  async onToday(
+  async onTodayWeather(
     @Context() [interaction]: SlashCommandContext,
-    @Options() dto: TodayQueryDto,
+    @Options() dto: TodayWeatherQueryDto,
+  ): Promise<void> {
+    await this.handleDeferredReply(interaction, async () => {
+      const location = dto.location?.trim() || DEFAULT_LOCATION;
+      const summary = await this.weatherService.getTodaySummary(location);
+      return formatTodaySummary(summary);
+    });
+  }
+
+  @SlashCommand({
+    name: '오늘운세',
+    description: '오늘의 운세를 조회합니다.',
+  })
+  async onTodayFortune(
+    @Context() [interaction]: SlashCommandContext,
+    @Options() dto: TodayFortuneQueryDto,
+  ): Promise<void> {
+    await this.handleDeferredReply(interaction, async () => {
+      const fortune = await this.fortuneService.getTodayFortune(dto.input);
+      return formatTodayFortune(fortune);
+    });
+  }
+
+  @SlashCommand({
+    name: '내일운세',
+    description: '내일의 운세를 조회합니다.',
+  })
+  async onTomorrowFortune(
+    @Context() [interaction]: SlashCommandContext,
+    @Options() dto: TodayFortuneQueryDto,
+  ): Promise<void> {
+    await this.handleDeferredReply(interaction, async () => {
+      const fortune = await this.fortuneService.getTomorrowFortune(dto.input);
+      return formatTodayFortune(fortune, '내일의 운세');
+    });
+  }
+
+  private async handleDeferredReply(
+    interaction: SlashCommandContext[0],
+    resolver: () => Promise<string>,
   ): Promise<void> {
     let hasDeferred = false;
 
     try {
-      // 외부 API 호출 전 응답 지연
       await interaction.deferReply();
       hasDeferred = true;
 
-      // 운세 옵션 동시 입력 시 내일 운세 우선
-      if (dto.tomorrowFortune?.trim()) {
-        const fortune = await this.todayService.getTomorrowFortune(
-          dto.tomorrowFortune,
-        );
-        await interaction.editReply({
-          content: formatTodayFortune(fortune, '내일의 운세'),
-        });
-        return;
-      }
-
-      if (dto.fortune?.trim()) {
-        const fortune = await this.todayService.getTodayFortune(dto.fortune);
-        await interaction.editReply({ content: formatTodayFortune(fortune) });
-        return;
-      }
-
-      // 운세 옵션 미입력 시 기본 날씨 요약 경로
-      const location = dto.location?.trim() || DEFAULT_LOCATION;
-      const summary = await this.todayService.getTodaySummary(location);
-      await interaction.editReply({ content: formatTodaySummary(summary) });
+      const content = await resolver();
+      await interaction.editReply({ content });
     } catch (error) {
       if (isUnknownInteractionError(error)) {
         return;
@@ -63,7 +86,6 @@ export class TodayCommands {
       const message =
         error instanceof Error ? error.message : TODAY_COMMAND_FAILED;
 
-      // defer 여부에 따른 응답 방식 분기
       if (hasDeferred) {
         await safeEditReply(interaction, message);
         return;

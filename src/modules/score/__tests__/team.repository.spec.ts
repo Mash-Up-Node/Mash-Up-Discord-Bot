@@ -1,12 +1,12 @@
 import { DataSource, Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { TeamEntity } from '../entities/team.entity';
-import { TeamTypeormRepository } from '../repositories/team.typeorm-repository';
+import { TeamRepository } from '../repositories/team.repository';
 import { Department } from '../score.constants';
 
-describe('TeamTypeormRepository', () => {
+describe('TeamRepository', () => {
   let dataSource: DataSource;
-  let repo: TeamTypeormRepository;
+  let repo: TeamRepository;
   let userRepo: Repository<UserEntity>;
 
   beforeEach(async () => {
@@ -17,7 +17,7 @@ describe('TeamTypeormRepository', () => {
       synchronize: true,
     });
     await dataSource.initialize();
-    repo = new TeamTypeormRepository(dataSource.getRepository(TeamEntity));
+    repo = new TeamRepository(dataSource.getRepository(TeamEntity));
     userRepo = dataSource.getRepository(UserEntity);
   });
 
@@ -101,18 +101,6 @@ describe('TeamTypeormRepository', () => {
       expect(teams[0].members).toHaveLength(1);
       expect(teams[1].name).toBe('2조');
       expect(teams[1].members).toHaveLength(1);
-    });
-  });
-
-  describe('deleteAll', () => {
-    it('모든 팀을 삭제한다', async () => {
-      await repo.create('1조');
-      await repo.create('2조');
-
-      await repo.deleteAll();
-
-      const teams = await repo.findAllWithMembers();
-      expect(teams).toEqual([]);
     });
   });
 });

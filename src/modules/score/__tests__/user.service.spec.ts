@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from '../user.service';
-import { USER_REPOSITORY } from '../repositories/user.repository';
+import { UserRepository } from '../repositories/user.repository';
 import { Department } from '../score.constants';
 import { UserEntity } from '../entities/user.entity';
 
@@ -29,7 +29,7 @@ describe('UserService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
-        { provide: USER_REPOSITORY, useValue: mockUserRepo },
+        { provide: UserRepository, useValue: mockUserRepo },
       ],
     }).compile();
 

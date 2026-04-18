@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { ScoreService } from '../score.service';
-import { USER_REPOSITORY } from '../repositories/user.repository';
-import { TEAM_REPOSITORY } from '../repositories/team.repository';
+import { UserRepository } from '../repositories/user.repository';
+import { TeamRepository } from '../repositories/team.repository';
 import { Department } from '../score.constants';
 import { UserEntity } from '../entities/user.entity';
 import { TeamEntity } from '../entities/team.entity';
@@ -88,8 +88,8 @@ describe('ScoreService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ScoreService,
-        { provide: USER_REPOSITORY, useValue: mockUserRepo },
-        { provide: TEAM_REPOSITORY, useValue: mockTeamRepo },
+        { provide: UserRepository, useValue: mockUserRepo },
+        { provide: TeamRepository, useValue: mockTeamRepo },
         { provide: DataSource, useValue: mockDataSource },
       ],
     }).compile();

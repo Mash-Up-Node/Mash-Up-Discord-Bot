@@ -1,23 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DataSource, In } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { TeamEntity } from './entities/team.entity';
 import { TeamRanking } from './score.constants';
-import {
-  USER_REPOSITORY,
-  UserRepository,
-} from './repositories/user.repository';
-import {
-  TEAM_REPOSITORY,
-  TeamRepository,
-} from './repositories/team.repository';
+import { UserRepository } from './repositories/user.repository';
+import { TeamRepository } from './repositories/team.repository';
 
 @Injectable()
 export class ScoreService {
   constructor(
-    @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
-    @Inject(TEAM_REPOSITORY)
     private readonly teamRepository: TeamRepository,
     private readonly dataSource: DataSource,
   ) {}

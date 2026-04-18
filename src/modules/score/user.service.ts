@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserEntity } from './entities/user.entity';
 import {
   Department,
@@ -6,17 +6,11 @@ import {
   ADMIN_PASSWORD,
   SyncResult,
 } from './score.constants';
-import {
-  USER_REPOSITORY,
-  UserRepository,
-} from './repositories/user.repository';
+import { UserRepository } from './repositories/user.repository';
 
 @Injectable()
 export class UserService {
-  constructor(
-    @Inject(USER_REPOSITORY)
-    private readonly userRepository: UserRepository,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   async findByDiscordId(discordId: string): Promise<UserEntity | null> {
     return this.userRepository.findByDiscordId(discordId);

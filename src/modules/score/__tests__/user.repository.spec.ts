@@ -1,13 +1,12 @@
 import { DataSource, Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { TeamEntity } from '../entities/team.entity';
-import { UserTypeormRepository } from '../repositories/user.typeorm-repository';
+import { UserRepository } from '../repositories/user.repository';
 import { Department } from '../score.constants';
 
-describe('UserTypeormRepository', () => {
+describe('UserRepository', () => {
   let dataSource: DataSource;
-  let repo: UserTypeormRepository;
-  let typeormRepo: Repository<UserEntity>;
+  let repo: UserRepository;
   let teamRepo: Repository<TeamEntity>;
 
   beforeEach(async () => {
@@ -18,9 +17,8 @@ describe('UserTypeormRepository', () => {
       synchronize: true,
     });
     await dataSource.initialize();
-    typeormRepo = dataSource.getRepository(UserEntity);
     teamRepo = dataSource.getRepository(TeamEntity);
-    repo = new UserTypeormRepository(typeormRepo);
+    repo = new UserRepository(dataSource.getRepository(UserEntity));
   });
 
   afterEach(async () => {
@@ -41,6 +39,18 @@ describe('UserTypeormRepository', () => {
       expect(user.score).toBe(0);
       expect(user.isAdmin).toBe(false);
       expect(user.teamId).toBeNull();
+    });
+
+    it('isAdmin true로 생성할 수 있다', async () => {
+      const user = await repo.create({
+        discordId: 'user-1',
+        nickname: '관리자',
+        generation: 0,
+        department: Department.Unknown,
+        isAdmin: true,
+      });
+
+      expect(user.isAdmin).toBe(true);
     });
   });
 
@@ -197,26 +207,6 @@ describe('UserTypeormRepository', () => {
       expect(ranking[0].totalScore).toBe(100);
       expect(ranking[1].teamName).toBe('1조');
       expect(ranking[1].totalScore).toBe(50);
-    });
-  });
-
-  describe('resetAllScoresAndTeams', () => {
-    it('모든 유저의 점수와 팀을 초기화한다', async () => {
-      const team = await teamRepo.save(teamRepo.create({ name: '1조' }));
-      await repo.create({
-        discordId: 'user-1',
-        nickname: 'A',
-        generation: 16,
-        department: Department.Node,
-      });
-      await repo.addScore('user-1', 50);
-      await repo.updateTeamId(['user-1'], team.id);
-
-      await repo.resetAllScoresAndTeams();
-
-      const user = await repo.findByDiscordId('user-1');
-      expect(user!.score).toBe(0);
-      expect(user!.teamId).toBeNull();
     });
   });
 });

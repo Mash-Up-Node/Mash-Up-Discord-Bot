@@ -1,12 +1,12 @@
 import { StudyListener } from '../study.listener';
 import { StudyService } from '../study.service';
-import { ConfigService } from '@nestjs/config';
+import { CategoryService } from '../category.service';
 import { VoiceState } from 'discord.js';
 
 describe('StudyListener', () => {
   let listener: StudyListener;
   let mockService: Record<string, jest.Mock>;
-  let mockConfig: Record<string, jest.Mock>;
+  let mockCategoryService: Record<string, jest.Mock>;
 
   const CATEGORY_ID = 'category-123';
 
@@ -37,13 +37,13 @@ describe('StudyListener', () => {
       getActiveSessionsAll: jest.fn(),
     };
 
-    mockConfig = {
-      getOrThrow: jest.fn().mockReturnValue(CATEGORY_ID),
+    mockCategoryService = {
+      has: jest.fn((id: string) => id === CATEGORY_ID),
     };
 
     listener = new StudyListener(
       mockService as unknown as StudyService,
-      mockConfig as unknown as ConfigService,
+      mockCategoryService as unknown as CategoryService,
     );
   });
 

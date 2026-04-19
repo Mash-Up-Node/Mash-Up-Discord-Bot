@@ -11,6 +11,7 @@ describe('StudyService', () => {
     id: 'session-1',
     userId: 'user-1',
     channelId: 'channel-1',
+    categoryId: 'cat-1',
     joinedAt: new Date('2026-04-01T10:00:00Z'),
     leftAt: null,
     duration: null,
@@ -41,12 +42,13 @@ describe('StudyService', () => {
       mockRepo.getActiveSession.mockResolvedValue(null);
       mockRepo.createSession.mockResolvedValue(mockSession);
 
-      const result = await service.handleJoin('user-1', 'channel-1');
+      const result = await service.handleJoin('user-1', 'channel-1', 'cat-1');
 
       expect(mockRepo.getActiveSession).toHaveBeenCalledWith('user-1');
       expect(mockRepo.createSession).toHaveBeenCalledWith(
         'user-1',
         'channel-1',
+        'cat-1',
       );
       expect(result).toEqual(mockSession);
     });
@@ -54,7 +56,7 @@ describe('StudyService', () => {
     it('이미 활성 세션이 있으면 새 세션을 생성하지 않는다', async () => {
       mockRepo.getActiveSession.mockResolvedValue(mockSession);
 
-      const result = await service.handleJoin('user-1', 'channel-1');
+      const result = await service.handleJoin('user-1', 'channel-1', 'cat-1');
 
       expect(mockRepo.createSession).not.toHaveBeenCalled();
       expect(result).toEqual(mockSession);
@@ -101,12 +103,13 @@ describe('StudyService', () => {
       mockRepo.endSession.mockResolvedValue(endedSession);
       mockRepo.createSession.mockResolvedValue(newSession);
 
-      const result = await service.handleMove('user-1', 'channel-2');
+      const result = await service.handleMove('user-1', 'channel-2', 'cat-2');
 
       expect(mockRepo.endSession).toHaveBeenCalledWith('user-1');
       expect(mockRepo.createSession).toHaveBeenCalledWith(
         'user-1',
         'channel-2',
+        'cat-2',
       );
       expect(result).toEqual(newSession);
     });
@@ -118,7 +121,16 @@ describe('StudyService', () => {
 
       const result = await service.getTotalDuration('user-1');
 
+      expect(mockRepo.getTotalDuration).toHaveBeenCalledWith('user-1', undefined);
       expect(result).toBe(7200);
+    });
+
+    it('categoryId를 repository로 전달한다', async () => {
+      mockRepo.getTotalDuration.mockResolvedValue(3600);
+
+      await service.getTotalDuration('user-1', 'cat-1');
+
+      expect(mockRepo.getTotalDuration).toHaveBeenCalledWith('user-1', 'cat-1');
     });
   });
 
@@ -139,8 +151,16 @@ describe('StudyService', () => {
 
       const result = await service.getLeaderboard(10);
 
-      expect(mockRepo.getLeaderboard).toHaveBeenCalledWith(10);
+      expect(mockRepo.getLeaderboard).toHaveBeenCalledWith(10, undefined);
       expect(result).toEqual(leaderboardData);
+    });
+
+    it('categoryId를 repository로 전달한다', async () => {
+      mockRepo.getLeaderboard.mockResolvedValue([]);
+
+      await service.getLeaderboard(10, 'cat-1');
+
+      expect(mockRepo.getLeaderboard).toHaveBeenCalledWith(10, 'cat-1');
     });
   });
 });

@@ -31,7 +31,11 @@ export class StudyListener {
 
     // 입장: 카테고리 밖 → 카테고리 안
     if (!wasInCategory && isInCategory) {
-      await this.studyService.handleJoin(userId, newState.channelId!);
+      await this.studyService.handleJoin(
+        userId,
+        newState.channelId!,
+        newState.channel!.parentId!,
+      );
       return;
     }
 
@@ -43,7 +47,11 @@ export class StudyListener {
 
     // 카테고리 내 채널 이동
     if (oldState.channelId !== newState.channelId) {
-      await this.studyService.handleMove(userId, newState.channelId!);
+      await this.studyService.handleMove(
+        userId,
+        newState.channelId!,
+        newState.channel!.parentId!,
+      );
     }
   }
 }

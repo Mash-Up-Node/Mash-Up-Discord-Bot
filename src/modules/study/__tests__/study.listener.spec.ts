@@ -57,7 +57,11 @@ describe('StudyListener', () => {
 
       await listener.onVoiceStateUpdate([oldState, newState] as never);
 
-      expect(mockService.handleJoin).toHaveBeenCalledWith('user-1', 'voice-1');
+      expect(mockService.handleJoin).toHaveBeenCalledWith(
+        'user-1',
+        'voice-1',
+        CATEGORY_ID,
+      );
     });
 
     it('카테고리 음성채널에서 퇴장하면 handleLeave를 호출한다', async () => {
@@ -84,7 +88,11 @@ describe('StudyListener', () => {
 
       await listener.onVoiceStateUpdate([oldState, newState] as never);
 
-      expect(mockService.handleMove).toHaveBeenCalledWith('user-1', 'voice-2');
+      expect(mockService.handleMove).toHaveBeenCalledWith(
+        'user-1',
+        'voice-2',
+        CATEGORY_ID,
+      );
     });
 
     it('카테고리 밖 음성채널 입장은 무시한다', async () => {
@@ -126,7 +134,11 @@ describe('StudyListener', () => {
 
       await listener.onVoiceStateUpdate([oldState, newState] as never);
 
-      expect(mockService.handleJoin).toHaveBeenCalledWith('user-1', 'voice-1');
+      expect(mockService.handleJoin).toHaveBeenCalledWith(
+        'user-1',
+        'voice-1',
+        CATEGORY_ID,
+      );
     });
   });
 });

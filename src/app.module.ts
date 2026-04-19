@@ -4,6 +4,7 @@ import { NecordModule } from 'necord';
 import { IntentsBitField } from 'discord.js';
 import { PingModule } from './modules/ping/ping.module';
 import { StudyModule } from './modules/study/study.module';
+import { ScoreModule } from './modules/score/score.module';
 import { DatabaseModule } from './database/database.module';
 import { TodayModule } from './modules/today/today.module';
 
@@ -26,6 +27,7 @@ import { TodayModule } from './modules/today/today.module';
     }),
     PingModule,
     StudyModule,
+    ScoreModule,
     TodayModule,
   ],
 })

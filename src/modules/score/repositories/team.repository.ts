@@ -1,0 +1,31 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { TeamEntity } from '../entities/team.entity';
+
+@Injectable()
+export class TeamRepository {
+  constructor(
+    @InjectRepository(TeamEntity)
+    private readonly repo: Repository<TeamEntity>,
+  ) {}
+
+  async create(name: string): Promise<TeamEntity> {
+    const team = this.repo.create({ name });
+    return this.repo.save(team);
+  }
+
+  async findById(id: number): Promise<TeamEntity | null> {
+    return this.repo.findOne({
+      where: { id },
+      relations: ['members'],
+    });
+  }
+
+  async findAllWithMembers(): Promise<TeamEntity[]> {
+    return this.repo.find({
+      relations: ['members'],
+      order: { id: 'ASC' },
+    });
+  }
+}

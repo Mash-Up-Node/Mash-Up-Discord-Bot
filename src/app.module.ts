@@ -6,6 +6,7 @@ import { PingModule } from './modules/ping/ping.module';
 import { StudyModule } from './modules/study/study.module';
 import { ScoreModule } from './modules/score/score.module';
 import { DatabaseModule } from './database/database.module';
+import { TodayModule } from './modules/today/today.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { DatabaseModule } from './database/database.module';
     PingModule,
     StudyModule,
     ScoreModule,
+    TodayModule,
   ],
 })
 export class AppModule {}

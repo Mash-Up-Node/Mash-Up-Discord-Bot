@@ -25,7 +25,11 @@ CREATE TABLE categories (
   name TEXT NOT NULL
 );
 
--- 4. 초기 시드 (기존 .env의 STUDY_CATEGORY_ID 값)
-INSERT INTO categories (category_id, name) VALUES
-  ('782054242399158333', 'Node');
+-- 4. study_sessions에 category_id 컬럼 추가 (카테고리별 집계 지원)
+ALTER TABLE study_sessions ADD COLUMN category_id TEXT;
+ALTER TABLE study_sessions ALTER COLUMN category_id SET NOT NULL;
+
+-- 5. 카테고리별 집계 성능용 인덱스
+CREATE INDEX idx_study_sessions_category_user_duration
+  ON study_sessions(category_id, user_id) WHERE duration IS NOT NULL;
 

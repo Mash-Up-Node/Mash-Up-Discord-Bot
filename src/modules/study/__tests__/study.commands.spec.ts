@@ -1,10 +1,13 @@
 import { StudyCommands } from '../study.commands';
 import { StudyService } from '../study.service';
+import { CategoryService } from '../category.service';
 import { StudyTimeDto } from '../dto/study-time.dto';
+import { LeaderboardDto } from '../dto/leaderboard.dto';
 
 describe('StudyCommands', () => {
   let commands: StudyCommands;
   let mockService: Record<string, jest.Mock>;
+  let mockCategoryService: Record<string, jest.Mock>;
 
   function createMockInteraction() {
     return {
@@ -28,7 +31,14 @@ describe('StudyCommands', () => {
       getActiveSessionsAll: jest.fn(),
     };
 
-    commands = new StudyCommands(mockService as unknown as StudyService);
+    mockCategoryService = {
+      has: jest.fn(),
+    };
+
+    commands = new StudyCommands(
+      mockService as unknown as StudyService,
+      mockCategoryService as unknown as CategoryService,
+    );
   });
 
   describe('/공부시간', () => {
@@ -39,7 +49,10 @@ describe('StudyCommands', () => {
 
       await commands.onStudyTime([interaction] as never, dto);
 
-      expect(mockService.getTotalDuration).toHaveBeenCalledWith('user-1');
+      expect(mockService.getTotalDuration).toHaveBeenCalledWith(
+        'user-1',
+        undefined,
+      );
       expect(interaction.reply).toHaveBeenCalledWith(
         expect.objectContaining({
           content: expect.stringContaining('기록이 없') as string,
@@ -74,10 +87,50 @@ describe('StudyCommands', () => {
 
       await commands.onStudyTime([interaction] as never, dto);
 
-      expect(mockService.getTotalDuration).toHaveBeenCalledWith('user-2');
+      expect(mockService.getTotalDuration).toHaveBeenCalledWith(
+        'user-2',
+        undefined,
+      );
       expect(interaction.reply).toHaveBeenCalledWith(
         expect.objectContaining({
           content: expect.stringContaining('공진성') as string,
+        }),
+      );
+    });
+
+    it('등록된 카테고리 지정 시 해당 카테고리 id로 조회하고 이름을 메시지에 포함한다', async () => {
+      mockCategoryService.has.mockReturnValue(true);
+      mockService.getTotalDuration.mockResolvedValue(3600);
+      const interaction = createMockInteraction();
+      const dto = new StudyTimeDto();
+      dto.category = { id: 'cat-1', name: 'Node' } as never;
+
+      await commands.onStudyTime([interaction] as never, dto);
+
+      expect(mockCategoryService.has).toHaveBeenCalledWith('cat-1');
+      expect(mockService.getTotalDuration).toHaveBeenCalledWith(
+        'user-1',
+        'cat-1',
+      );
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('Node') as string,
+        }),
+      );
+    });
+
+    it('등록되지 않은 카테고리면 안내 메시지를 보내고 조회하지 않는다', async () => {
+      mockCategoryService.has.mockReturnValue(false);
+      const interaction = createMockInteraction();
+      const dto = new StudyTimeDto();
+      dto.category = { id: 'cat-x', name: 'Unknown' } as never;
+
+      await commands.onStudyTime([interaction] as never, dto);
+
+      expect(mockService.getTotalDuration).not.toHaveBeenCalled();
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('등록되지 않은') as string,
         }),
       );
     });
@@ -87,9 +140,14 @@ describe('StudyCommands', () => {
     it('기록이 없으면 안내 메시지를 보낸다', async () => {
       mockService.getLeaderboard.mockResolvedValue([]);
       const interaction = createMockInteraction();
+      const dto = new LeaderboardDto();
 
-      await commands.onLeaderboard([interaction] as never);
+      await commands.onLeaderboard([interaction] as never, dto);
 
+      expect(mockService.getLeaderboard).toHaveBeenCalledWith(
+        expect.any(Number),
+        undefined,
+      );
       expect(interaction.reply).toHaveBeenCalledWith(
         expect.objectContaining({
           content: expect.stringContaining('기록이 없') as string,
@@ -103,12 +161,51 @@ describe('StudyCommands', () => {
         { userId: 'user-2', total: 3600 },
       ]);
       const interaction = createMockInteraction();
+      const dto = new LeaderboardDto();
 
-      await commands.onLeaderboard([interaction] as never);
+      await commands.onLeaderboard([interaction] as never, dto);
 
       expect(interaction.reply).toHaveBeenCalledWith(
         expect.objectContaining({
           content: expect.stringContaining('순위표') as string,
+        }),
+      );
+    });
+
+    it('등록된 카테고리 지정 시 해당 카테고리 id로 조회하고 제목에 이름을 포함한다', async () => {
+      mockCategoryService.has.mockReturnValue(true);
+      mockService.getLeaderboard.mockResolvedValue([
+        { userId: 'user-1', total: 7200 },
+      ]);
+      const interaction = createMockInteraction();
+      const dto = new LeaderboardDto();
+      dto.category = { id: 'cat-1', name: 'Node' } as never;
+
+      await commands.onLeaderboard([interaction] as never, dto);
+
+      expect(mockService.getLeaderboard).toHaveBeenCalledWith(
+        expect.any(Number),
+        'cat-1',
+      );
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('Node') as string,
+        }),
+      );
+    });
+
+    it('등록되지 않은 카테고리면 안내 메시지를 보내고 조회하지 않는다', async () => {
+      mockCategoryService.has.mockReturnValue(false);
+      const interaction = createMockInteraction();
+      const dto = new LeaderboardDto();
+      dto.category = { id: 'cat-x', name: 'Unknown' } as never;
+
+      await commands.onLeaderboard([interaction] as never, dto);
+
+      expect(mockService.getLeaderboard).not.toHaveBeenCalled();
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('등록되지 않은') as string,
         }),
       );
     });

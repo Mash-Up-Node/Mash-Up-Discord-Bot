@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
-export class SelfPingService {
-  private readonly logger = new Logger(SelfPingService.name);
+export class KeepAliveService {
+  private readonly logger = new Logger(KeepAliveService.name);
 
   constructor(private readonly config: ConfigService) {}
 
@@ -12,16 +12,16 @@ export class SelfPingService {
   async ping(): Promise<void> {
     const baseUrl = this.config.get<string>('RENDER_EXTERNAL_URL');
     if (!baseUrl) {
-      this.logger.debug('Self-ping skipped: RENDER_EXTERNAL_URL not set');
+      this.logger.debug('Keep-alive skipped: RENDER_EXTERNAL_URL not set');
       return;
     }
 
     const url = `${baseUrl}/health`;
     try {
       const res = await fetch(url);
-      this.logger.log(`Self-ping → ${res.status}`);
+      this.logger.log(`Keep-alive → ${res.status}`);
     } catch (err) {
-      this.logger.warn(`Self-ping failed: ${(err as Error).message}`);
+      this.logger.warn(`Keep-alive failed: ${(err as Error).message}`);
     }
   }
 }

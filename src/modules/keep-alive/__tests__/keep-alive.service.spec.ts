@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { SelfPingService } from '../self-ping.service';
+import { KeepAliveService } from '../keep-alive.service';
 
-describe('SelfPingService', () => {
-  let service: SelfPingService;
+describe('KeepAliveService', () => {
+  let service: KeepAliveService;
   let mockConfig: { get: jest.Mock };
   let fetchSpy: jest.SpyInstance;
 
@@ -12,12 +12,12 @@ describe('SelfPingService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        SelfPingService,
+        KeepAliveService,
         { provide: ConfigService, useValue: mockConfig },
       ],
     }).compile();
 
-    service = module.get<SelfPingService>(SelfPingService);
+    service = module.get<KeepAliveService>(KeepAliveService);
     fetchSpy = jest.spyOn(global, 'fetch');
   });
 

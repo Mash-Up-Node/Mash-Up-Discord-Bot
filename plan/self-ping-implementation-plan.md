@@ -14,13 +14,17 @@
 ```
 src/modules/
 ├── ping/          ← Discord 커맨드 (그대로 유지)
-└── health/        ← 신규: HTTP 헬스체크 + Self-Ping
-    ├── health.controller.ts
-    ├── self-ping.service.ts
-    ├── health.module.ts
+├── health/        ← 신규: HTTP 헬스체크 (단일 책임)
+│   ├── health.controller.ts
+│   └── health.module.ts
+└── keep-alive/    ← 신규: 자가 호출 cron (단일 책임)
+    ├── keep-alive.service.ts
+    ├── keep-alive.module.ts
     └── __tests__/
-        └── self-ping.service.spec.ts
+        └── keep-alive.service.spec.ts
 ```
+
+> 리뷰 피드백 반영: HealthController(엔드포인트 제공)와 keep-alive cron(외부 발신 작업)은 책임이 다르므로 모듈 분리.
 
 ### 1.2. 기술 선택
 

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, In } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity } from '../user/entities/user.entity';
 import { TeamEntity } from './entities/team.entity';
 import { TeamRanking } from './score.constants';
-import { UserRepository } from './repositories/user.repository';
+import { UserRepository } from '../user/repositories/user.repository';
 import { TeamRepository } from './repositories/team.repository';
 
 @Injectable()

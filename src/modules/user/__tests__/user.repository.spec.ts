@@ -1,8 +1,8 @@
 import { DataSource, Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
-import { TeamEntity } from '../entities/team.entity';
+import { TeamEntity } from '../../score/entities/team.entity';
 import { UserRepository } from '../repositories/user.repository';
-import { Department } from '../score.constants';
+import { Department } from '../user.constants';
 
 describe('UserRepository', () => {
   let dataSource: DataSource;

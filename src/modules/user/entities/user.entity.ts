@@ -1,6 +1,6 @@
 import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamEntity } from './team.entity';
-import { Department } from '../score.constants';
+import { TeamEntity } from '../../score/entities/team.entity';
+import { Department } from '../user.constants';
 
 @Entity('users')
 export class UserEntity {

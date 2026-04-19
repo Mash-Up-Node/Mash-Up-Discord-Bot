@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
-import { Department, TeamRanking } from '../score.constants';
+import { Department } from '../user.constants';
+import { TeamRanking } from '../../score/score.constants';
 
 @Injectable()
 export class UserRepository {

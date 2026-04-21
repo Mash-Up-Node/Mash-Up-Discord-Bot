@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import {
   TicketacoNotificationCandidate,
   TicketacoOrganization,
@@ -8,6 +8,7 @@ import {
 import { TicketacoOrganizationEntity } from '../entities/ticketaco-organization.entity';
 import { TicketacoEventEntity } from '../entities/ticketaco-event.entity';
 import { TicketacoDeliveryEntity } from '../entities/ticketaco-delivery.entity';
+import { TicketacoUpcomingEventEntry } from '../ticketaco.types';
 
 export class TicketacoTypeormRepository implements TicketacoRepository {
   constructor(
@@ -136,5 +137,26 @@ export class TicketacoTypeormRepository implements TicketacoRepository {
       .values({ eventId, subscriptionId, sentAt })
       .orIgnore()
       .execute();
+  }
+
+  async getUpcomingEventEntries(): Promise<TicketacoUpcomingEventEntry[]> {
+    const events = await this.eventRepo.find({
+      where: { startAt: MoreThan(new Date()) },
+      relations: { organization: true },
+      order: { startAt: 'ASC' },
+    });
+
+    return events.map((event) => ({
+      orgName: event.organization.name,
+      event: {
+        id: event.externalEventId,
+        title: event.title,
+        startDate: event.startAt.toISOString(),
+        endDate: event.endAt.toISOString(),
+        imageUrl: event.imageUrl,
+        createdAt: event.sourceCreatedAt.toISOString(),
+        venue: event.venue,
+      },
+    }));
   }
 }

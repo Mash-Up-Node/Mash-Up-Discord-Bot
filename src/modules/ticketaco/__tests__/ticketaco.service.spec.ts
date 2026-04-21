@@ -7,6 +7,7 @@ import {
   TicketacoRepository,
   UpsertTicketacoEventInput,
 } from '../repositories/ticketaco.repository';
+import { TicketacoUpcomingEventEntry } from '../ticketaco.types';
 
 type TicketacoOrganizationResponse = Awaited<
   ReturnType<TicketacoApiClient['fetchOrganization']>
@@ -94,6 +95,10 @@ const mockRepository: {
     [string]
   >;
   recordDelivery: jest.Mock<Promise<void>, [string, string, Date]>;
+  getUpcomingEventEntries: jest.Mock<
+    Promise<TicketacoUpcomingEventEntry[]>,
+    []
+  >;
 } = {
   getOrganizations: jest.fn<Promise<TicketacoOrganization[]>, []>(),
   updateOrganizationName: jest.fn<Promise<void>, [string, string]>(),
@@ -103,6 +108,10 @@ const mockRepository: {
     [string]
   >(),
   recordDelivery: jest.fn<Promise<void>, [string, string, Date]>(),
+  getUpcomingEventEntries: jest.fn<
+    Promise<TicketacoUpcomingEventEntry[]>,
+    []
+  >(),
 };
 
 async function runScheduledSync(service: TicketacoService): Promise<void> {
@@ -122,6 +131,7 @@ describe('TicketacoService', () => {
     mockRepository.upsertEvents.mockResolvedValue(undefined);
     mockRepository.getNotificationCandidates.mockResolvedValue([]);
     mockRepository.recordDelivery.mockResolvedValue(undefined);
+    mockRepository.getUpcomingEventEntries.mockResolvedValue([]);
 
     service = new TicketacoService(
       mockClient,
@@ -242,5 +252,17 @@ describe('TicketacoService', () => {
         venue: '늦은 장소 2층',
       }),
     ]);
+  });
+
+  it('DB에 저장된 upcoming event 목록을 그대로 반환한다', async () => {
+    const entries: TicketacoUpcomingEventEntry[] = [
+      {
+        orgName: 'Test Org',
+        event: notificationCandidate.event,
+      },
+    ];
+    mockRepository.getUpcomingEventEntries.mockResolvedValue(entries);
+
+    await expect(service.getUpcomingEventEntries()).resolves.toEqual(entries);
   });
 });

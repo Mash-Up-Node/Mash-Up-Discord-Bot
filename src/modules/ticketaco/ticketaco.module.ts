@@ -6,6 +6,7 @@ import {
   TICKETACO_API_CLIENT,
 } from './ticketaco-api.client';
 import { TicketacoService } from './ticketaco.service';
+import { TicketacoCommands } from './ticketaco.commands';
 import { SharedModule } from '../shared/shared.module';
 import { TicketacoOrganizationEntity } from './entities/ticketaco-organization.entity';
 import { TicketacoSubscriptionEntity } from './entities/ticketaco-subscription.entity';
@@ -26,6 +27,7 @@ import { TicketacoTypeormRepository } from './repositories/ticketaco.typeorm-rep
   ],
   providers: [
     TicketacoService,
+    TicketacoCommands,
     HttpTicketacoApiClient,
     {
       provide: TICKETACO_API_CLIENT,

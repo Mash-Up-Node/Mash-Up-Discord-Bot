@@ -13,6 +13,7 @@ import {
   TicketacoOrganization,
   TicketacoRepository,
 } from './repositories/ticketaco.repository';
+import { TicketacoUpcomingEventEntry } from './ticketaco.types';
 
 @Injectable()
 export class TicketacoService {
@@ -33,6 +34,10 @@ export class TicketacoService {
     for (const organization of organizations) {
       await this.syncOrganization(organization);
     }
+  }
+
+  async getUpcomingEventEntries(): Promise<TicketacoUpcomingEventEntry[]> {
+    return this.ticketacoRepository.getUpcomingEventEntries();
   }
 
   private async syncOrganization(

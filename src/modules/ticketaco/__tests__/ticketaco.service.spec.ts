@@ -2,6 +2,7 @@ import { Client, SendableChannels } from 'discord.js';
 import { TicketacoApiClient, TicketacoEvent } from '../ticketaco-api.client';
 import { TicketacoService } from '../ticketaco.service';
 import {
+  EnsureTicketacoSubscriptionInput,
   TicketacoNotificationCandidate,
   TicketacoOrganization,
   TicketacoRepository,
@@ -89,6 +90,10 @@ const mockApiClient: TicketacoApiClient = {
 const mockRepository: {
   getOrganizations: jest.Mock<Promise<TicketacoOrganization[]>, []>;
   updateOrganizationName: jest.Mock<Promise<void>, [string, string]>;
+  ensureSubscription: jest.Mock<
+    Promise<boolean>,
+    [EnsureTicketacoSubscriptionInput]
+  >;
   upsertEvents: jest.Mock<Promise<void>, [string, UpsertTicketacoEventInput[]]>;
   getNotificationCandidates: jest.Mock<
     Promise<TicketacoNotificationCandidate[]>,
@@ -102,6 +107,10 @@ const mockRepository: {
 } = {
   getOrganizations: jest.fn<Promise<TicketacoOrganization[]>, []>(),
   updateOrganizationName: jest.fn<Promise<void>, [string, string]>(),
+  ensureSubscription: jest.fn<
+    Promise<boolean>,
+    [EnsureTicketacoSubscriptionInput]
+  >(),
   upsertEvents: jest.fn<Promise<void>, [string, UpsertTicketacoEventInput[]]>(),
   getNotificationCandidates: jest.fn<
     Promise<TicketacoNotificationCandidate[]>,
@@ -128,6 +137,7 @@ describe('TicketacoService', () => {
     fetchChannelMock.mockResolvedValue(mockChannel);
     mockRepository.getOrganizations.mockResolvedValue([organization]);
     mockRepository.updateOrganizationName.mockResolvedValue(undefined);
+    mockRepository.ensureSubscription.mockResolvedValue(true);
     mockRepository.upsertEvents.mockResolvedValue(undefined);
     mockRepository.getNotificationCandidates.mockResolvedValue([]);
     mockRepository.recordDelivery.mockResolvedValue(undefined);
@@ -138,6 +148,24 @@ describe('TicketacoService', () => {
       mockApiClient,
       mockRepository as unknown as TicketacoRepository,
     );
+  });
+
+  it('organization 구독을 현재 채널에 추가한다', async () => {
+    mockFetchResult = makeResponse([], 'TSBM');
+
+    await expect(
+      service.subscribeOrganization('  MVSATCJFOJ  ', 'channel-1'),
+    ).resolves.toEqual({
+      created: true,
+      slug: 'MVSATCJFOJ',
+      organizationName: 'TSBM',
+    });
+
+    expect(mockRepository.ensureSubscription).toHaveBeenCalledWith({
+      slug: 'MVSATCJFOJ',
+      organizationName: 'TSBM',
+      channelId: 'channel-1',
+    });
   });
 
   it('schedule sync에서 전송 성공 후에만 delivery 레코드를 생성한다', async () => {

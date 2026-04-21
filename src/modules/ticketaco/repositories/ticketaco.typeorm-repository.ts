@@ -1,18 +1,24 @@
-import { MoreThan, Repository } from 'typeorm';
+import { DataSource, MoreThan, Repository } from 'typeorm';
+import { DiscordChannelEntity } from '../../shared/entities/discord-channel.entity';
+import { TicketacoDeliveryEntity } from '../entities/ticketaco-delivery.entity';
+import { TicketacoEventEntity } from '../entities/ticketaco-event.entity';
+import { TicketacoOrganizationEntity } from '../entities/ticketaco-organization.entity';
+import { TicketacoSubscriptionEntity } from '../entities/ticketaco-subscription.entity';
+import { TicketacoUpcomingEventEntry } from '../ticketaco.types';
 import {
+  EnsureTicketacoSubscriptionInput,
   TicketacoNotificationCandidate,
   TicketacoOrganization,
   TicketacoRepository,
   UpsertTicketacoEventInput,
 } from './ticketaco.repository';
-import { TicketacoOrganizationEntity } from '../entities/ticketaco-organization.entity';
-import { TicketacoEventEntity } from '../entities/ticketaco-event.entity';
-import { TicketacoDeliveryEntity } from '../entities/ticketaco-delivery.entity';
-import { TicketacoUpcomingEventEntry } from '../ticketaco.types';
 
 export class TicketacoTypeormRepository implements TicketacoRepository {
   constructor(
+    private readonly dataSource: DataSource,
     private readonly organizationRepo: Repository<TicketacoOrganizationEntity>,
+    private readonly channelRepo: Repository<DiscordChannelEntity>,
+    private readonly subscriptionRepo: Repository<TicketacoSubscriptionEntity>,
     private readonly eventRepo: Repository<TicketacoEventEntity>,
     private readonly deliveryRepo: Repository<TicketacoDeliveryEntity>,
   ) {}
@@ -39,6 +45,46 @@ export class TicketacoTypeormRepository implements TicketacoRepository {
     name: string,
   ): Promise<void> {
     await this.organizationRepo.update(organizationId, { name });
+  }
+
+  async ensureSubscription(
+    input: EnsureTicketacoSubscriptionInput,
+  ): Promise<boolean> {
+    return this.dataSource.transaction(async (manager) => {
+      const organizationRepo = manager.getRepository(
+        TicketacoOrganizationEntity,
+      );
+      const channelRepo = manager.getRepository(DiscordChannelEntity);
+      const subscriptionRepo = manager.getRepository(
+        TicketacoSubscriptionEntity,
+      );
+
+      await Promise.all([
+        organizationRepo.upsert(
+          { slug: input.slug, name: input.organizationName },
+          ['slug'],
+        ),
+        channelRepo.upsert({ channelId: input.channelId }, ['channelId']),
+      ]);
+
+      const [organization, channel] = await Promise.all([
+        organizationRepo.findOneByOrFail({ slug: input.slug }),
+        channelRepo.findOneByOrFail({ channelId: input.channelId }),
+      ]);
+
+      const result = await subscriptionRepo
+        .createQueryBuilder()
+        .insert()
+        .into(TicketacoSubscriptionEntity)
+        .values({
+          organizationId: organization.id,
+          channelId: channel.id,
+        })
+        .orIgnore()
+        .execute();
+
+      return result.identifiers.length > 0;
+    });
   }
 
   async upsertEvents(

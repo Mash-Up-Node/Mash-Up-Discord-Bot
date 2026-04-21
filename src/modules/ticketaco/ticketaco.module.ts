@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import {
   HttpTicketacoApiClient,
   TICKETACO_API_CLIENT,
@@ -8,6 +8,7 @@ import {
 import { TicketacoService } from './ticketaco.service';
 import { TicketacoCommands } from './ticketaco.commands';
 import { SharedModule } from '../shared/shared.module';
+import { DiscordChannelEntity } from '../shared/entities/discord-channel.entity';
 import { TicketacoOrganizationEntity } from './entities/ticketaco-organization.entity';
 import { TicketacoSubscriptionEntity } from './entities/ticketaco-subscription.entity';
 import { TicketacoEventEntity } from './entities/ticketaco-event.entity';
@@ -36,17 +37,26 @@ import { TicketacoTypeormRepository } from './repositories/ticketaco.typeorm-rep
     {
       provide: TICKETACO_REPOSITORY,
       inject: [
+        DataSource,
         getRepositoryToken(TicketacoOrganizationEntity),
+        getRepositoryToken(DiscordChannelEntity),
+        getRepositoryToken(TicketacoSubscriptionEntity),
         getRepositoryToken(TicketacoEventEntity),
         getRepositoryToken(TicketacoDeliveryEntity),
       ],
       useFactory: (
+        dataSource: DataSource,
         organizationRepo: Repository<TicketacoOrganizationEntity>,
+        channelRepo: Repository<DiscordChannelEntity>,
+        subscriptionRepo: Repository<TicketacoSubscriptionEntity>,
         eventRepo: Repository<TicketacoEventEntity>,
         deliveryRepo: Repository<TicketacoDeliveryEntity>,
       ) =>
         new TicketacoTypeormRepository(
+          dataSource,
           organizationRepo,
+          channelRepo,
+          subscriptionRepo,
           eventRepo,
           deliveryRepo,
         ),

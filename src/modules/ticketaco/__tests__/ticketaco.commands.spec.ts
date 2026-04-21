@@ -13,6 +13,7 @@ type InteractionReplyPayload = {
 };
 
 type MockInteraction = {
+  channelId: string;
   deferred: boolean;
   replied: boolean;
   editReplies: InteractionReplyPayload[];
@@ -20,6 +21,12 @@ type MockInteraction = {
   deferReply: jest.Mock<Promise<void>, []>;
   editReply: jest.Mock<Promise<void>, [InteractionReplyPayload]>;
   reply: jest.Mock<Promise<void>, [InteractionReplyPayload]>;
+};
+
+type SubscribeOrganizationResult = {
+  created: boolean;
+  slug: string;
+  organizationName: string;
 };
 
 function createEvent(
@@ -41,10 +48,15 @@ describe('TicketacoCommands', () => {
   let commands: TicketacoCommands;
   let mockService: {
     getUpcomingEventEntries: jest.Mock<Promise<UpcomingEventEntry[]>, []>;
+    subscribeOrganization: jest.Mock<
+      Promise<SubscribeOrganizationResult>,
+      [string, string]
+    >;
   };
 
   function createMockInteraction(): MockInteraction {
     const interaction: MockInteraction = {
+      channelId: 'channel-1',
       deferred: false,
       replied: false,
       editReplies: [],
@@ -74,6 +86,10 @@ describe('TicketacoCommands', () => {
   beforeEach(() => {
     mockService = {
       getUpcomingEventEntries: jest.fn<Promise<UpcomingEventEntry[]>, []>(),
+      subscribeOrganization: jest.fn<
+        Promise<SubscribeOrganizationResult>,
+        [string, string]
+      >(),
     };
 
     commands = new TicketacoCommands(
@@ -134,6 +150,48 @@ describe('TicketacoCommands', () => {
     expect(interaction.editReply).toHaveBeenCalledWith(
       expect.objectContaining({
         content: '이벤트 정보를 불러오는 중 오류가 발생했습니다.',
+      }),
+    );
+  });
+
+  it('현재 채널에 구독을 추가한다', async () => {
+    mockService.subscribeOrganization.mockResolvedValue({
+      created: true,
+      slug: 'MVSATCJFOJ',
+      organizationName: 'TSBM',
+    });
+    const interaction = createMockInteraction();
+
+    await commands.onSubscribe(
+      [interaction] as never,
+      { slug: '  MVSATCJFOJ  ' } as never,
+    );
+
+    expect(mockService.subscribeOrganization).toHaveBeenCalledWith(
+      '  MVSATCJFOJ  ',
+      'channel-1',
+    );
+    const payload = interaction.editReplies[0];
+
+    expect(payload?.content).toContain('TSBM(MVSATCJFOJ)');
+  });
+
+  it('이미 구독 중이면 안내 메시지를 보낸다', async () => {
+    mockService.subscribeOrganization.mockResolvedValue({
+      created: false,
+      slug: 'mvsatcjfoj',
+      organizationName: 'TSBM',
+    });
+    const interaction = createMockInteraction();
+
+    await commands.onSubscribe(
+      [interaction] as never,
+      { slug: 'mvsatcjfoj' } as never,
+    );
+
+    expect(interaction.editReply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: 'ℹ️ 현재 채널은 이미 TSBM(mvsatcjfoj)을 구독 중입니다.',
       }),
     );
   });

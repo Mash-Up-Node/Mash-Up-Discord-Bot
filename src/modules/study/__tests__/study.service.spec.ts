@@ -121,7 +121,10 @@ describe('StudyService', () => {
 
       const result = await service.getTotalDuration('user-1');
 
-      expect(mockRepo.getTotalDuration).toHaveBeenCalledWith('user-1', undefined);
+      expect(mockRepo.getTotalDuration).toHaveBeenCalledWith(
+        'user-1',
+        undefined,
+      );
       expect(result).toBe(7200);
     });
 

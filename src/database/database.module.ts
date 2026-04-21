@@ -16,13 +16,13 @@ const dataSourceOptions: Record<
     type: 'better-sqlite3',
     database: process.env.SQLITE_PATH ?? 'study.db',
     entities,
-    synchronize: true,
+    synchronize: process.env.DB_SYNCHRONIZE === 'true',
   }),
   supabase: (config: ConfigService) => ({
     type: 'postgres',
     url: config.getOrThrow<string>('DATABASE_URL'),
     entities,
-    synchronize: false,
+    synchronize: process.env.DB_SYNCHRONIZE === 'true',
   }),
 };
 

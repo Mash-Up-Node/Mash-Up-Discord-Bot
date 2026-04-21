@@ -11,6 +11,7 @@ import { KeepAliveModule } from './modules/keep-alive/keep-alive.module';
 import { DatabaseModule } from './database/database.module';
 import { TodayModule } from './modules/today/today.module';
 import { SharedModule } from './modules/shared/shared.module';
+import { TicketacoModule } from './modules/ticketaco/ticketaco.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { SharedModule } from './modules/shared/shared.module';
     TodayModule,
     HealthModule,
     KeepAliveModule,
+    TicketacoModule,
   ],
 })
 export class AppModule {}

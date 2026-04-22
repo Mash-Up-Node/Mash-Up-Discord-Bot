@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { DataSource, In } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
+import { TeamEntity } from './entities/team.entity';
 import {
   Department,
   DEPARTMENT_REGEX,
@@ -7,10 +9,15 @@ import {
   SyncResult,
 } from './user.constants';
 import { UserRepository } from './repositories/user.repository';
+import { TeamRepository } from './repositories/team.repository';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly teamRepository: TeamRepository,
+    private readonly dataSource: DataSource,
+  ) {}
 
   async findByDiscordId(discordId: string): Promise<UserEntity | null> {
     return this.userRepository.findByDiscordId(discordId);
@@ -106,5 +113,28 @@ export class UserService {
   async isAdmin(discordId: string): Promise<boolean> {
     const user = await this.userRepository.findByDiscordId(discordId);
     return user?.isAdmin ?? false;
+  }
+
+  async getTeamList(): Promise<TeamEntity[]> {
+    return this.teamRepository.findAllWithMembers();
+  }
+
+  async buildTeam(name: string, memberIds: string[]): Promise<TeamEntity> {
+    return this.dataSource.transaction(async (manager) => {
+      const teamRepo = manager.getRepository(TeamEntity);
+      const userRepo = manager.getRepository(UserEntity);
+
+      const team = await teamRepo.save(teamRepo.create({ name }));
+      if (memberIds.length > 0) {
+        await userRepo.update(
+          { discordId: In(memberIds) },
+          { teamId: team.id },
+        );
+      }
+      return (await teamRepo.findOne({
+        where: { id: team.id },
+        relations: ['members'],
+      })) as TeamEntity;
+    });
   }
 }

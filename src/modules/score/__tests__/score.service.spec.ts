@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { ScoreService } from '../score.service';
-import { UserRepository } from '../repositories/user.repository';
-import { TeamRepository } from '../repositories/team.repository';
-import { Department } from '../score.constants';
-import { UserEntity } from '../entities/user.entity';
-import { TeamEntity } from '../entities/team.entity';
+import { UserRepository } from '../../user/repositories/user.repository';
+import { TeamRepository } from '../../user/repositories/team.repository';
+import { Department } from '../../user/user.constants';
+import { UserEntity } from '../../user/entities/user.entity';
+import { TeamEntity } from '../../user/entities/team.entity';
 
 describe('ScoreService', () => {
   let service: ScoreService;

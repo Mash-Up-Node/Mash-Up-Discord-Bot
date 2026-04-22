@@ -6,6 +6,7 @@ import { IntentsBitField } from 'discord.js';
 import { PingModule } from './modules/ping/ping.module';
 import { StudyModule } from './modules/study/study.module';
 import { ScoreModule } from './modules/score/score.module';
+import { UserModule } from './modules/user/user.module';
 import { HealthModule } from './modules/health/health.module';
 import { KeepAliveModule } from './modules/keep-alive/keep-alive.module';
 import { DatabaseModule } from './database/database.module';
@@ -34,6 +35,7 @@ import { TicketacoModule } from './modules/ticketaco/ticketaco.module';
     PingModule,
     SharedModule,
     StudyModule,
+    UserModule,
     ScoreModule,
     TodayModule,
     HealthModule,

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, In } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
-import { TeamEntity } from './entities/team.entity';
+import { UserEntity } from '../user/entities/user.entity';
+import { TeamEntity } from '../user/entities/team.entity';
 import { TeamRanking } from './score.constants';
-import { UserRepository } from './repositories/user.repository';
-import { TeamRepository } from './repositories/team.repository';
+import { UserRepository } from '../user/repositories/user.repository';
+import { TeamRepository } from '../user/repositories/team.repository';
 
 @Injectable()
 export class ScoreService {

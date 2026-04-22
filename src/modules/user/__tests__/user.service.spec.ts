@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from '../user.service';
 import { UserRepository } from '../repositories/user.repository';
-import { Department } from '../score.constants';
+import { Department } from '../user.constants';
 import { UserEntity } from '../entities/user.entity';
 
 describe('UserService', () => {

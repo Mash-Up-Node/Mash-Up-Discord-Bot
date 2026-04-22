@@ -5,7 +5,7 @@ import {
   DEPARTMENT_REGEX,
   ADMIN_PASSWORD,
   SyncResult,
-} from './score.constants';
+} from './user.constants';
 import { UserRepository } from './repositories/user.repository';
 
 @Injectable()
@@ -25,12 +25,8 @@ export class UserService {
 
     for (const member of members) {
       const match = member.displayName.match(DEPARTMENT_REGEX);
-      const department = match
-        ? (match[1] as Department)
-        : Department.Unknown;
-      const nickname = member.displayName
-        .replace(DEPARTMENT_REGEX, '')
-        .trim();
+      const department = match ? (match[1] as Department) : Department.Unknown;
+      const nickname = member.displayName.replace(DEPARTMENT_REGEX, '').trim();
 
       if (!match) {
         failed.push({

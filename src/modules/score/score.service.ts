@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, In } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { UserEntity } from '../user/entities/user.entity';
 import { TeamEntity } from '../user/entities/team.entity';
 import { TeamRanking } from './score.constants';
 import { UserRepository } from '../user/repositories/user.repository';
-import { TeamRepository } from '../user/repositories/team.repository';
 
 @Injectable()
 export class ScoreService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly teamRepository: TeamRepository,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -24,29 +22,6 @@ export class ScoreService {
 
   async getTeamRanking(): Promise<TeamRanking[]> {
     return this.userRepository.getTeamRanking();
-  }
-
-  async getTeamList(): Promise<TeamEntity[]> {
-    return this.teamRepository.findAllWithMembers();
-  }
-
-  async buildTeam(name: string, memberIds: string[]): Promise<TeamEntity> {
-    return this.dataSource.transaction(async (manager) => {
-      const teamRepo = manager.getRepository(TeamEntity);
-      const userRepo = manager.getRepository(UserEntity);
-
-      const team = await teamRepo.save(teamRepo.create({ name }));
-      if (memberIds.length > 0) {
-        await userRepo.update(
-          { discordId: In(memberIds) },
-          { teamId: team.id },
-        );
-      }
-      return (await teamRepo.findOne({
-        where: { id: team.id },
-        relations: ['members'],
-      })) as TeamEntity;
-    });
   }
 
   async resetAll(): Promise<void> {

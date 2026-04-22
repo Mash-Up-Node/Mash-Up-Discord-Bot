@@ -3,7 +3,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StudySessionEntity } from '../modules/study/entities/study-session.entity';
 import { UserEntity } from '../modules/user/entities/user.entity';
-import { TeamEntity } from '../modules/score/entities/team.entity';
+import { TeamEntity } from '../modules/user/entities/team.entity';
 import { DATABASE_ERRORS } from '../constants/error-messages';
 
 const entities = [StudySessionEntity, UserEntity, TeamEntity];

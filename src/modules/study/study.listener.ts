@@ -1,23 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Context, On } from 'necord';
 import { VoiceState } from 'discord.js';
 import { StudyService } from './study.service';
+import { CategoryService } from './category.service';
 
 @Injectable()
 export class StudyListener {
-  private readonly categoryId: string;
-
   constructor(
     private readonly studyService: StudyService,
-    private readonly configService: ConfigService,
-  ) {
-    this.categoryId =
-      this.configService.getOrThrow<string>('STUDY_CATEGORY_ID');
-  }
+    private readonly categoryService: CategoryService,
+  ) {}
 
   private isInStudyCategory(state: VoiceState): boolean {
-    return state.channel?.parentId === this.categoryId;
+    const parentId = state.channel?.parentId;
+    return parentId != null && this.categoryService.has(parentId);
   }
 
   @On('voiceStateUpdate')
@@ -35,7 +31,11 @@ export class StudyListener {
 
     // 입장: 카테고리 밖 → 카테고리 안
     if (!wasInCategory && isInCategory) {
-      await this.studyService.handleJoin(userId, newState.channelId!);
+      await this.studyService.handleJoin(
+        userId,
+        newState.channelId!,
+        newState.channel!.parentId!,
+      );
       return;
     }
 
@@ -47,7 +47,11 @@ export class StudyListener {
 
     // 카테고리 내 채널 이동
     if (oldState.channelId !== newState.channelId) {
-      await this.studyService.handleMove(userId, newState.channelId!);
+      await this.studyService.handleMove(
+        userId,
+        newState.channelId!,
+        newState.channel!.parentId!,
+      );
     }
   }
 }

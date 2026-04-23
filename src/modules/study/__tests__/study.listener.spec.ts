@@ -1,12 +1,12 @@
 import { StudyListener } from '../study.listener';
 import { StudyService } from '../study.service';
-import { ConfigService } from '@nestjs/config';
+import { CategoryService } from '../category.service';
 import { VoiceState } from 'discord.js';
 
 describe('StudyListener', () => {
   let listener: StudyListener;
   let mockService: Record<string, jest.Mock>;
-  let mockConfig: Record<string, jest.Mock>;
+  let mockCategoryService: Record<string, jest.Mock>;
 
   const CATEGORY_ID = 'category-123';
 
@@ -37,13 +37,13 @@ describe('StudyListener', () => {
       getActiveSessionsAll: jest.fn(),
     };
 
-    mockConfig = {
-      getOrThrow: jest.fn().mockReturnValue(CATEGORY_ID),
+    mockCategoryService = {
+      has: jest.fn((id: string) => id === CATEGORY_ID),
     };
 
     listener = new StudyListener(
       mockService as unknown as StudyService,
-      mockConfig as unknown as ConfigService,
+      mockCategoryService as unknown as CategoryService,
     );
   });
 
@@ -57,7 +57,11 @@ describe('StudyListener', () => {
 
       await listener.onVoiceStateUpdate([oldState, newState] as never);
 
-      expect(mockService.handleJoin).toHaveBeenCalledWith('user-1', 'voice-1');
+      expect(mockService.handleJoin).toHaveBeenCalledWith(
+        'user-1',
+        'voice-1',
+        CATEGORY_ID,
+      );
     });
 
     it('카테고리 음성채널에서 퇴장하면 handleLeave를 호출한다', async () => {
@@ -84,7 +88,11 @@ describe('StudyListener', () => {
 
       await listener.onVoiceStateUpdate([oldState, newState] as never);
 
-      expect(mockService.handleMove).toHaveBeenCalledWith('user-1', 'voice-2');
+      expect(mockService.handleMove).toHaveBeenCalledWith(
+        'user-1',
+        'voice-2',
+        CATEGORY_ID,
+      );
     });
 
     it('카테고리 밖 음성채널 입장은 무시한다', async () => {
@@ -126,7 +134,11 @@ describe('StudyListener', () => {
 
       await listener.onVoiceStateUpdate([oldState, newState] as never);
 
-      expect(mockService.handleJoin).toHaveBeenCalledWith('user-1', 'voice-1');
+      expect(mockService.handleJoin).toHaveBeenCalledWith(
+        'user-1',
+        'voice-1',
+        CATEGORY_ID,
+      );
     });
   });
 });

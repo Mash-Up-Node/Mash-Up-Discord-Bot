@@ -13,11 +13,13 @@ export class StudySessionTypeormRepository implements StudySessionRepository {
   async createSession(
     userId: string,
     channelId: string,
+    categoryId: string,
   ): Promise<StudySession> {
     const session = this.repo.create({
       id: randomUUID(),
       userId,
       channelId,
+      categoryId,
       joinedAt: new Date(),
       leftAt: null,
       duration: null,
@@ -46,14 +48,18 @@ export class StudySessionTypeormRepository implements StudySessionRepository {
     return { ...active, leftAt, duration };
   }
 
-  async getTotalDuration(userId: string): Promise<number> {
-    const result = await this.repo
+  async getTotalDuration(userId: string, categoryId?: string): Promise<number> {
+    const qb = this.repo
       .createQueryBuilder('s')
       .select('COALESCE(SUM(s.duration), 0)', 'total')
       .where('s.user_id = :userId', { userId })
-      .andWhere('s.duration IS NOT NULL')
-      .getRawOne<{ total: string }>();
+      .andWhere('s.duration IS NOT NULL');
 
+    if (categoryId !== undefined) {
+      qb.andWhere('s.category_id = :categoryId', { categoryId });
+    }
+
+    const result = await qb.getRawOne<{ total: string }>();
     return Number(result?.total ?? 0);
   }
 
@@ -63,12 +69,21 @@ export class StudySessionTypeormRepository implements StudySessionRepository {
     });
   }
 
-  async getLeaderboard(limit: number): Promise<LeaderboardEntry[]> {
-    const rows = await this.repo
+  async getLeaderboard(
+    limit: number,
+    categoryId?: string,
+  ): Promise<LeaderboardEntry[]> {
+    const qb = this.repo
       .createQueryBuilder('s')
       .select('s.user_id', 'userId')
       .addSelect('COALESCE(SUM(s.duration), 0)', 'total')
-      .where('s.duration IS NOT NULL')
+      .where('s.duration IS NOT NULL');
+
+    if (categoryId !== undefined) {
+      qb.andWhere('s.category_id = :categoryId', { categoryId });
+    }
+
+    const rows = await qb
       .groupBy('s.user_id')
       .orderBy('total', 'DESC')
       .limit(limit)

@@ -2,6 +2,7 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StudySessionEntity } from '../modules/study/entities/study-session.entity';
+import { CategoryEntity } from '../modules/study/entities/category.entity';
 import { UserEntity } from '../modules/user/entities/user.entity';
 import { TeamEntity } from '../modules/user/entities/team.entity';
 import { DiscordChannelEntity } from '../modules/shared/entities/discord-channel.entity';
@@ -14,6 +15,7 @@ import { DATABASE_ERRORS } from '../constants/error-messages';
 const entities = [
   DiscordChannelEntity,
   StudySessionEntity,
+  CategoryEntity,
   UserEntity,
   TeamEntity,
   TicketacoDeliveryEntity,

@@ -11,6 +11,9 @@ export class StudySessionEntity {
   @Column({ name: 'channel_id', type: 'varchar' })
   channelId!: string;
 
+  @Column({ name: 'category_id', type: 'varchar' })
+  categoryId!: string;
+
   @Column({ name: 'joined_at' })
   joinedAt!: Date;
 
@@ -25,6 +28,7 @@ export interface StudySession {
   id: string;
   userId: string;
   channelId: string;
+  categoryId: string;
   joinedAt: Date;
   leftAt: Date | null;
   duration: number | null;

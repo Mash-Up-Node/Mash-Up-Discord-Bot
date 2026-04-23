@@ -6,10 +6,17 @@ import {
 export const STUDY_SESSION_REPOSITORY = Symbol('STUDY_SESSION_REPOSITORY');
 
 export interface StudySessionRepository {
-  createSession(userId: string, channelId: string): Promise<StudySession>;
+  createSession(
+    userId: string,
+    channelId: string,
+    categoryId: string,
+  ): Promise<StudySession>;
   endSession(userId: string): Promise<StudySession | null>;
   getActiveSession(userId: string): Promise<StudySession | null>;
-  getTotalDuration(userId: string): Promise<number>;
+  getTotalDuration(userId: string, categoryId?: string): Promise<number>;
   getActiveSessionsAll(): Promise<StudySession[]>;
-  getLeaderboard(limit: number): Promise<LeaderboardEntry[]>;
+  getLeaderboard(
+    limit: number,
+    categoryId?: string,
+  ): Promise<LeaderboardEntry[]>;
 }

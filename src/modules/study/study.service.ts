@@ -15,11 +15,15 @@ export class StudyService {
     private readonly repository: StudySessionRepository,
   ) {}
 
-  async handleJoin(userId: string, channelId: string): Promise<StudySession> {
+  async handleJoin(
+    userId: string,
+    channelId: string,
+    categoryId: string,
+  ): Promise<StudySession> {
     const existing = await this.repository.getActiveSession(userId);
     if (existing) return existing;
 
-    return this.repository.createSession(userId, channelId);
+    return this.repository.createSession(userId, channelId, categoryId);
   }
 
   async handleLeave(userId: string): Promise<StudySession | null> {
@@ -29,20 +33,24 @@ export class StudyService {
   async handleMove(
     userId: string,
     newChannelId: string,
+    newCategoryId: string,
   ): Promise<StudySession> {
     await this.repository.endSession(userId);
-    return this.repository.createSession(userId, newChannelId);
+    return this.repository.createSession(userId, newChannelId, newCategoryId);
   }
 
-  async getTotalDuration(userId: string): Promise<number> {
-    return this.repository.getTotalDuration(userId);
+  async getTotalDuration(userId: string, categoryId?: string): Promise<number> {
+    return this.repository.getTotalDuration(userId, categoryId);
   }
 
   async getActiveSessionsAll(): Promise<StudySession[]> {
     return this.repository.getActiveSessionsAll();
   }
 
-  getLeaderboard(limit: number): Promise<LeaderboardEntry[]> {
-    return this.repository.getLeaderboard(limit);
+  getLeaderboard(
+    limit: number,
+    categoryId?: string,
+  ): Promise<LeaderboardEntry[]> {
+    return this.repository.getLeaderboard(limit, categoryId);
   }
 }

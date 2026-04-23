@@ -6,10 +6,12 @@ import { DatabaseModule } from '../database.module';
 describe('DatabaseModule', () => {
   afterEach(() => {
     delete process.env.DB_TYPE;
+    delete process.env.SQLITE_PATH;
   });
 
   it('DB_TYPE=sqlite이면 DataSource가 생성된다', async () => {
     process.env.DB_TYPE = 'sqlite';
+    process.env.SQLITE_PATH = ':memory:';
 
     const module = await Test.createTestingModule({
       imports: [ConfigModule.forRoot(), DatabaseModule.forRoot()],

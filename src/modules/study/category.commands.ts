@@ -16,6 +16,14 @@ export class CategoryCommands {
     @Context() [interaction]: SlashCommandContext,
     @Options() dto: CategoryAddDto,
   ): Promise<void> {
+    if (!interaction.memberPermissions?.has('Administrator')) {
+      await interaction.reply({
+        content: '관리자만 사용할 수 있는 커맨드입니다.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
     const { id, name } = dto.category;
     const added = await this.categoryService.add(id, name);
 

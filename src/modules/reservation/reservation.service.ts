@@ -131,13 +131,10 @@ export class ReservationService {
     // 일회성 예약: 날짜/시간 재 처리
     if (targetReservation.kind === RESERVATION_KIND_ONCE) {
       if (input.dateInput || input.timeInput) {
-        const normalizedTimeOfDay = input.timeInput
-          ? normalizeTimeOfDay(input.timeInput)
-          : formatTimeHmKst(targetReservation.nextScheduledAt);
-
-        if (!normalizedTimeOfDay) {
-          throw new Error(RESERVATION_ERRORS.invalidTime);
-        }
+        const normalizedTimeOfDay =
+          input.timeInput !== undefined
+            ? this.normalizeInputTime(input.timeInput)
+            : formatTimeHmKst(targetReservation.nextScheduledAt);
 
         const dateInput =
           input.dateInput ??
@@ -163,12 +160,8 @@ export class ReservationService {
 
     // 반복 예약: 시간만 재 처리
     if (targetReservation.kind === RESERVATION_KIND_WEEKLY) {
-      if (input.timeInput) {
-        const normalizedTimeOfDay = normalizeTimeOfDay(input.timeInput);
-
-        if (!normalizedTimeOfDay) {
-          throw new Error(RESERVATION_ERRORS.invalidTime);
-        }
+      if (input.timeInput !== undefined) {
+        const normalizedTimeOfDay = this.normalizeInputTime(input.timeInput);
 
         updateInput.timeOfDay = normalizedTimeOfDay;
         updateInput.nextScheduledAt = getNextWeeklyOccurrence(
@@ -290,6 +283,16 @@ export class ReservationService {
     );
 
     return reminderAt.getTime() <= now.getTime();
+  }
+
+  private normalizeInputTime(timeInput: string): string {
+    const normalizedTimeOfDay = normalizeTimeOfDay(timeInput);
+
+    if (!normalizedTimeOfDay) {
+      throw new Error(RESERVATION_ERRORS.invalidTime);
+    }
+
+    return normalizedTimeOfDay;
   }
 
   private async advanceReservation(

@@ -45,14 +45,19 @@ export class ReservationService {
     input: CreateReservationInput,
     now: Date = new Date(),
   ): Promise<ChannelReservation> {
-    const title = input.title;
-    const reminderMessage = input.reminderMessage;
-    const reminderOffsetMinutes = input.reminderOffsetMinutes;
     const normalizedTimeOfDay = normalizeTimeOfDay(input.timeInput);
 
     if (!normalizedTimeOfDay) {
       throw new Error(RESERVATION_ERRORS.invalidTime);
     }
+
+    const baseCreateInput = {
+      channelId: input.channelId,
+      creatorUserId: input.creatorUserId,
+      title: input.title,
+      reminderMessage: input.reminderMessage,
+      reminderOffsetMinutes: input.reminderOffsetMinutes,
+    };
 
     if (input.kind === RESERVATION_KIND_ONCE) {
       const occurrenceAt = createKstDate(input.dateInput, normalizedTimeOfDay);
@@ -70,12 +75,8 @@ export class ReservationService {
       }
 
       const createInput: CreateChannelReservationInput = {
-        channelId: input.channelId,
-        creatorUserId: input.creatorUserId,
-        kind: input.kind,
-        title,
-        reminderMessage,
-        reminderOffsetMinutes,
+        ...baseCreateInput,
+        kind: RESERVATION_KIND_ONCE,
         dayOfWeek: null,
         timeOfDay: null,
         nextScheduledAt: occurrenceAt,
@@ -84,12 +85,8 @@ export class ReservationService {
       return this.repository.createReservation(createInput);
     } else {
       const createInput: CreateChannelReservationInput = {
-        channelId: input.channelId,
-        creatorUserId: input.creatorUserId,
-        kind: input.kind,
-        title,
-        reminderMessage,
-        reminderOffsetMinutes,
+        ...baseCreateInput,
+        kind: RESERVATION_KIND_WEEKLY,
         dayOfWeek: input.dayOfWeek,
         timeOfDay: normalizedTimeOfDay,
         nextScheduledAt: getNextWeeklyOccurrence(

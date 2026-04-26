@@ -10,6 +10,8 @@ import { TicketacoDeliveryEntity } from '../modules/ticketaco/entities/ticketaco
 import { TicketacoEventEntity } from '../modules/ticketaco/entities/ticketaco-event.entity';
 import { TicketacoOrganizationEntity } from '../modules/ticketaco/entities/ticketaco-organization.entity';
 import { TicketacoSubscriptionEntity } from '../modules/ticketaco/entities/ticketaco-subscription.entity';
+import { ChannelReservationEntity } from '../modules/reservation/entities/channel-reservation.entity';
+import { ReservationNotificationEntity } from '../modules/reservation/entities/reservation-notification.entity';
 import { DATABASE_ERRORS } from '../constants/error-messages';
 
 const entities = [
@@ -18,6 +20,8 @@ const entities = [
   CategoryEntity,
   UserEntity,
   TeamEntity,
+  ChannelReservationEntity,
+  ReservationNotificationEntity,
   TicketacoDeliveryEntity,
   TicketacoEventEntity,
   TicketacoOrganizationEntity,

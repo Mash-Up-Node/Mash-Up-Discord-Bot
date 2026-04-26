@@ -13,6 +13,7 @@ import { DatabaseModule } from './database/database.module';
 import { TodayModule } from './modules/today/today.module';
 import { SharedModule } from './modules/shared/shared.module';
 import { TicketacoModule } from './modules/ticketaco/ticketaco.module';
+import { ReservationModule } from './modules/reservation/reservation.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { TicketacoModule } from './modules/ticketaco/ticketaco.module';
     HealthModule,
     KeepAliveModule,
     TicketacoModule,
+    ReservationModule,
   ],
 })
 export class AppModule {}

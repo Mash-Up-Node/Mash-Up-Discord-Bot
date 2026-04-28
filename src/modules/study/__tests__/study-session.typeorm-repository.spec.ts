@@ -1,5 +1,9 @@
 import { DataSource, Repository } from 'typeorm';
 import { StudySessionEntity } from '../entities/study-session.entity';
+import { CategoryEntity } from '../entities/category.entity';
+import { UserEntity } from '../../user/entities/user.entity';
+import { TeamEntity } from '../../user/entities/team.entity';
+import { Department } from '../../user/user.constants';
 import { StudySessionTypeormRepository } from '../repositories/study-session.typeorm-repository';
 
 describe('StudySessionTypeormRepository', () => {
@@ -11,10 +15,34 @@ describe('StudySessionTypeormRepository', () => {
     dataSource = new DataSource({
       type: 'better-sqlite3',
       database: ':memory:',
-      entities: [StudySessionEntity],
+      entities: [StudySessionEntity, CategoryEntity, UserEntity, TeamEntity],
       synchronize: true,
     });
     await dataSource.initialize();
+    await dataSource.query('PRAGMA foreign_keys = ON');
+
+    const userRepo = dataSource.getRepository(UserEntity);
+    await userRepo.save(
+      ['user-1', 'user-2'].map((discordId) =>
+        userRepo.create({
+          discordId,
+          nickname: discordId,
+          generation: 0,
+          department: Department.Unknown,
+          isAdmin: false,
+          teamId: null,
+          score: 0,
+        }),
+      ),
+    );
+
+    const catRepo = dataSource.getRepository(CategoryEntity);
+    await catRepo.save(
+      ['cat-1', 'cat-2'].map((categoryId) =>
+        catRepo.create({ categoryId, name: categoryId }),
+      ),
+    );
+
     typeormRepo = dataSource.getRepository(StudySessionEntity);
     repo = new StudySessionTypeormRepository(typeormRepo);
   });

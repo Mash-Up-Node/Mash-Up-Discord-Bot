@@ -3,12 +3,14 @@ import { Context, On } from 'necord';
 import { VoiceState } from 'discord.js';
 import { StudyService } from './study.service';
 import { CategoryService } from './category.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class StudyListener {
   constructor(
     private readonly studyService: StudyService,
     private readonly categoryService: CategoryService,
+    private readonly userService: UserService,
   ) {}
 
   private isInStudyCategory(state: VoiceState): boolean {
@@ -20,8 +22,9 @@ export class StudyListener {
   async onVoiceStateUpdate(
     @Context() [oldState, newState]: [VoiceState, VoiceState],
   ): Promise<void> {
-    const userId = (newState.member ?? oldState.member)?.id;
-    if (!userId) return;
+    const member = newState.member ?? oldState.member;
+    if (!member) return;
+    const userId = member.id;
 
     const wasInCategory = this.isInStudyCategory(oldState);
     const isInCategory = this.isInStudyCategory(newState);
@@ -31,6 +34,7 @@ export class StudyListener {
 
     // 입장: 카테고리 밖 → 카테고리 안
     if (!wasInCategory && isInCategory) {
+      await this.userService.ensureUser(userId, member.displayName);
       await this.studyService.handleJoin(
         userId,
         newState.channelId!,
@@ -47,6 +51,7 @@ export class StudyListener {
 
     // 카테고리 내 채널 이동
     if (oldState.channelId !== newState.channelId) {
+      await this.userService.ensureUser(userId, member.displayName);
       await this.studyService.handleMove(
         userId,
         newState.channelId!,

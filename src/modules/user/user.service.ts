@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DataSource, In } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { TeamEntity } from './entities/team.entity';
@@ -11,11 +12,37 @@ export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly teamRepository: TeamRepository,
+    private readonly configService: ConfigService,
     private readonly dataSource: DataSource,
   ) {}
 
   async findByDiscordId(discordId: string): Promise<UserEntity | null> {
     return this.userRepository.findByDiscordId(discordId);
+  }
+
+  async ensureUser(
+    discordId: string,
+    displayName: string,
+  ): Promise<UserEntity> {
+    const existing = await this.userRepository.findByDiscordId(discordId);
+    if (existing) return existing;
+
+    const match = displayName.match(DEPARTMENT_REGEX);
+    const department = match ? (match[1] as Department) : Department.Unknown;
+    const nickname =
+      displayName.replace(DEPARTMENT_REGEX, '').trim() || displayName;
+
+    const rawGen = this.configService.get<string>('MASHUP_GENERATION');
+    const parsedGen = Number(rawGen);
+    const generation =
+      Number.isInteger(parsedGen) && parsedGen > 0 ? parsedGen : 0;
+
+    return this.userRepository.create({
+      discordId,
+      nickname,
+      generation,
+      department,
+    });
   }
 
   async syncMembers(

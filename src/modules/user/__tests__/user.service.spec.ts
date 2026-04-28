@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { UserService } from '../user.service';
 import { UserRepository } from '../repositories/user.repository';
@@ -11,6 +12,7 @@ describe('UserService', () => {
   let service: UserService;
   let mockUserRepo: Record<string, jest.Mock>;
   let mockTeamRepo: Record<string, jest.Mock>;
+  let mockConfig: { get: jest.Mock };
   let mockDataSource: { transaction: jest.Mock };
   let mockTeamRepoTx: Record<string, jest.Mock>;
   let mockUserRepoTx: Record<string, jest.Mock>;
@@ -49,6 +51,9 @@ describe('UserService', () => {
     mockUserRepoTx = {
       update: jest.fn(),
     };
+    mockConfig = {
+      get: jest.fn().mockReturnValue('16'),
+    };
     mockDataSource = {
       transaction: jest.fn(
         (cb: (m: { getRepository: jest.Mock }) => Promise<unknown>) =>
@@ -67,6 +72,7 @@ describe('UserService', () => {
         UserService,
         { provide: UserRepository, useValue: mockUserRepo },
         { provide: TeamRepository, useValue: mockTeamRepo },
+        { provide: ConfigService, useValue: mockConfig },
         { provide: DataSource, useValue: mockDataSource },
       ],
     }).compile();
@@ -81,6 +87,77 @@ describe('UserService', () => {
       const result = await service.findByDiscordId('user-1');
 
       expect(result).toEqual(mockUser);
+    });
+  });
+
+  describe('ensureUser', () => {
+    it('이미 등록된 유저는 그대로 반환한다', async () => {
+      mockUserRepo.findByDiscordId.mockResolvedValue(mockUser);
+
+      const result = await service.ensureUser('user-1', '[노드]홍길동');
+
+      expect(result).toEqual(mockUser);
+      expect(mockUserRepo.create).not.toHaveBeenCalled();
+    });
+
+    it('미등록 유저는 displayName을 파싱해서 생성한다', async () => {
+      mockUserRepo.findByDiscordId.mockResolvedValue(null);
+      mockUserRepo.create.mockImplementation((data) =>
+        Promise.resolve({ ...mockUser, ...data }),
+      );
+
+      await service.ensureUser('new-user', '[디자인]김철수');
+
+      expect(mockUserRepo.create).toHaveBeenCalledWith({
+        discordId: 'new-user',
+        nickname: '김철수',
+        generation: 16,
+        department: Department.Design,
+      });
+    });
+
+    it('태그 없는 displayName은 Unknown department로 생성한다', async () => {
+      mockUserRepo.findByDiscordId.mockResolvedValue(null);
+      mockUserRepo.create.mockImplementation((data) =>
+        Promise.resolve({ ...mockUser, ...data }),
+      );
+
+      await service.ensureUser('new-user', '태그없는닉');
+
+      expect(mockUserRepo.create).toHaveBeenCalledWith({
+        discordId: 'new-user',
+        nickname: '태그없는닉',
+        generation: 16,
+        department: Department.Unknown,
+      });
+    });
+
+    it('MASHUP_GENERATION 미설정 시 generation=0으로 생성한다', async () => {
+      mockUserRepo.findByDiscordId.mockResolvedValue(null);
+      mockConfig.get.mockReturnValue(undefined);
+      mockUserRepo.create.mockImplementation((data) =>
+        Promise.resolve({ ...mockUser, ...data }),
+      );
+
+      await service.ensureUser('new-user', '[웹]홍길동');
+
+      expect(mockUserRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ generation: 0 }),
+      );
+    });
+
+    it('잘못된 MASHUP_GENERATION 값은 generation=0으로 처리한다', async () => {
+      mockUserRepo.findByDiscordId.mockResolvedValue(null);
+      mockConfig.get.mockReturnValue('abc');
+      mockUserRepo.create.mockImplementation((data) =>
+        Promise.resolve({ ...mockUser, ...data }),
+      );
+
+      await service.ensureUser('new-user', '[웹]홍길동');
+
+      expect(mockUserRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ generation: 0 }),
+      );
     });
   });
 

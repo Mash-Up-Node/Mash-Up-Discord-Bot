@@ -1,12 +1,14 @@
 import { StudyListener } from '../study.listener';
 import { StudyService } from '../study.service';
 import { CategoryService } from '../category.service';
+import { UserService } from '../../user/user.service';
 import { VoiceState } from 'discord.js';
 
 describe('StudyListener', () => {
   let listener: StudyListener;
   let mockService: Record<string, jest.Mock>;
   let mockCategoryService: Record<string, jest.Mock>;
+  let mockUserService: { ensureUser: jest.Mock };
 
   const CATEGORY_ID = 'category-123';
 
@@ -15,6 +17,7 @@ describe('StudyListener', () => {
       channelId: string | null;
       parentId: string | null;
       userId: string;
+      displayName: string;
     }> = {},
   ): VoiceState {
     return {
@@ -24,6 +27,7 @@ describe('StudyListener', () => {
         : null,
       member: {
         id: overrides.userId ?? 'user-1',
+        displayName: overrides.displayName ?? '[노드]홍길동',
       },
     } as unknown as VoiceState;
   }
@@ -41,22 +45,32 @@ describe('StudyListener', () => {
       has: jest.fn((id: string) => id === CATEGORY_ID),
     };
 
+    mockUserService = {
+      ensureUser: jest.fn().mockResolvedValue(undefined),
+    };
+
     listener = new StudyListener(
       mockService as unknown as StudyService,
       mockCategoryService as unknown as CategoryService,
+      mockUserService as unknown as UserService,
     );
   });
 
   describe('onVoiceStateUpdate', () => {
-    it('카테고리 음성채널에 입장하면 handleJoin을 호출한다', async () => {
+    it('카테고리 음성채널에 입장하면 handleJoin 전에 ensureUser를 호출한다', async () => {
       const oldState = createMockVoiceState({ channelId: null });
       const newState = createMockVoiceState({
         channelId: 'voice-1',
         parentId: CATEGORY_ID,
+        displayName: '[노드]홍길동',
       });
 
       await listener.onVoiceStateUpdate([oldState, newState] as never);
 
+      expect(mockUserService.ensureUser).toHaveBeenCalledWith(
+        'user-1',
+        '[노드]홍길동',
+      );
       expect(mockService.handleJoin).toHaveBeenCalledWith(
         'user-1',
         'voice-1',
@@ -64,7 +78,7 @@ describe('StudyListener', () => {
       );
     });
 
-    it('카테고리 음성채널에서 퇴장하면 handleLeave를 호출한다', async () => {
+    it('카테고리 음성채널에서 퇴장하면 handleLeave를 호출하고 ensureUser는 호출하지 않는다', async () => {
       const oldState = createMockVoiceState({
         channelId: 'voice-1',
         parentId: CATEGORY_ID,
@@ -74,9 +88,10 @@ describe('StudyListener', () => {
       await listener.onVoiceStateUpdate([oldState, newState] as never);
 
       expect(mockService.handleLeave).toHaveBeenCalledWith('user-1');
+      expect(mockUserService.ensureUser).not.toHaveBeenCalled();
     });
 
-    it('카테고리 내 다른 음성채널로 이동하면 handleMove를 호출한다', async () => {
+    it('카테고리 내 다른 음성채널로 이동하면 handleMove 전에 ensureUser를 호출한다', async () => {
       const oldState = createMockVoiceState({
         channelId: 'voice-1',
         parentId: CATEGORY_ID,
@@ -88,6 +103,7 @@ describe('StudyListener', () => {
 
       await listener.onVoiceStateUpdate([oldState, newState] as never);
 
+      expect(mockUserService.ensureUser).toHaveBeenCalled();
       expect(mockService.handleMove).toHaveBeenCalledWith(
         'user-1',
         'voice-2',

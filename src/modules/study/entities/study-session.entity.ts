@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { UserEntity } from '../../user/entities/user.entity';
+import { CategoryEntity } from './category.entity';
 
 @Entity('study_sessions')
 export class StudySessionEntity {
@@ -22,6 +30,14 @@ export class StudySessionEntity {
 
   @Column({ type: 'integer', nullable: true })
   duration!: number | null; // 초 단위
+
+  @ManyToOne(() => UserEntity)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'discordId' })
+  user!: UserEntity;
+
+  @ManyToOne(() => CategoryEntity)
+  @JoinColumn({ name: 'category_id', referencedColumnName: 'categoryId' })
+  category!: CategoryEntity;
 }
 
 export interface StudySession {

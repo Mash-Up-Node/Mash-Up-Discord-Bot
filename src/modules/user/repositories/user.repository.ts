@@ -50,18 +50,18 @@ export class UserRepository {
     const rows = await this.repo
       .createQueryBuilder('u')
       .innerJoin('u.team', 't')
-      .select('t.id', 'teamId')
-      .addSelect('t.name', 'teamName')
-      .addSelect('COALESCE(SUM(u.score), 0)', 'totalScore')
+      .select('t.id', 'team_id')
+      .addSelect('t.name', 'team_name')
+      .addSelect('COALESCE(SUM(u.score), 0)', 'total_score')
       .groupBy('t.id')
       .addGroupBy('t.name')
-      .orderBy('totalScore', 'DESC')
-      .getRawMany<{ teamId: number; teamName: string; totalScore: string }>();
+      .orderBy('total_score', 'DESC')
+      .getRawMany<{ team_id: number; team_name: string; total_score: string }>();
 
     return rows.map((row) => ({
-      teamId: Number(row.teamId),
-      teamName: row.teamName,
-      totalScore: Number(row.totalScore),
+      teamId: Number(row.team_id),
+      teamName: row.team_name,
+      totalScore: Number(row.total_score),
     }));
   }
 

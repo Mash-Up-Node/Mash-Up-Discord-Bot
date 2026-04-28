@@ -115,9 +115,7 @@ describe('UserService', () => {
     it('기존 멤버는 update를 호출한다', async () => {
       mockUserRepo.findByDiscordId.mockResolvedValue(mockUser);
 
-      const members = [
-        { discordId: 'user-1', displayName: '[스프링]홍길동' },
-      ];
+      const members = [{ discordId: 'user-1', displayName: '[스프링]홍길동' }];
 
       const result = await service.syncMembers(members, 17);
 
@@ -134,9 +132,7 @@ describe('UserService', () => {
       mockUserRepo.findByDiscordId.mockResolvedValue(null);
       mockUserRepo.create.mockResolvedValue(mockUser);
 
-      const members = [
-        { discordId: 'user-1', displayName: '태그없는사람' },
-      ];
+      const members = [{ discordId: 'user-1', displayName: '태그없는사람' }];
 
       const result = await service.syncMembers(members, 16);
 
@@ -231,40 +227,38 @@ describe('UserService', () => {
     });
   });
 
-  describe('adminLogin', () => {
-    it('올바른 비밀번호로 로그인하면 관리자 권한을 부여한다', async () => {
+  describe('setAdmin', () => {
+    it('isAdmin=true로 승격한다', async () => {
       mockUserRepo.findByDiscordId.mockResolvedValue(mockUser);
 
-      const result = await service.adminLogin('user-1', '홍길동', 'mashup1234');
+      const result = await service.setAdmin('user-1', true);
 
-      expect(result).toBe(true);
       expect(mockUserRepo.update).toHaveBeenCalledWith('user-1', {
         isAdmin: true,
       });
+      expect(result.isAdmin).toBe(true);
     });
 
-    it('잘못된 비밀번호로 로그인하면 실패한다', async () => {
-      const result = await service.adminLogin('user-1', '홍길동', 'wrong');
-
-      expect(result).toBe(false);
-      expect(mockUserRepo.update).not.toHaveBeenCalled();
-      expect(mockUserRepo.create).not.toHaveBeenCalled();
-    });
-
-    it('존재하지 않는 유저는 isAdmin true로 생성한다', async () => {
-      mockUserRepo.findByDiscordId.mockResolvedValue(null);
-      mockUserRepo.create.mockResolvedValue({ ...mockUser, isAdmin: true });
-
-      const result = await service.adminLogin('user-1', '홍길동', 'mashup1234');
-
-      expect(result).toBe(true);
-      expect(mockUserRepo.create).toHaveBeenCalledWith({
-        discordId: 'user-1',
-        nickname: '홍길동',
-        generation: 0,
-        department: Department.Unknown,
+    it('isAdmin=false로 권한을 해제한다', async () => {
+      mockUserRepo.findByDiscordId.mockResolvedValue({
+        ...mockUser,
         isAdmin: true,
       });
+
+      const result = await service.setAdmin('user-1', false);
+
+      expect(mockUserRepo.update).toHaveBeenCalledWith('user-1', {
+        isAdmin: false,
+      });
+      expect(result.isAdmin).toBe(false);
+    });
+
+    it('존재하지 않는 유저는 에러를 던진다', async () => {
+      mockUserRepo.findByDiscordId.mockResolvedValue(null);
+
+      await expect(service.setAdmin('unknown', true)).rejects.toThrow(
+        'User not found',
+      );
       expect(mockUserRepo.update).not.toHaveBeenCalled();
     });
   });

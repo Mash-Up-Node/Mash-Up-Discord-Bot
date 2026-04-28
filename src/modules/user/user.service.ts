@@ -2,12 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource, In } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { TeamEntity } from './entities/team.entity';
-import {
-  Department,
-  DEPARTMENT_REGEX,
-  ADMIN_PASSWORD,
-  SyncResult,
-} from './user.constants';
+import { Department, DEPARTMENT_REGEX, SyncResult } from './user.constants';
 import { UserRepository } from './repositories/user.repository';
 import { TeamRepository } from './repositories/team.repository';
 
@@ -88,26 +83,13 @@ export class UserService {
     });
   }
 
-  async adminLogin(
-    discordId: string,
-    nickname: string,
-    password: string,
-  ): Promise<boolean> {
-    if (password !== ADMIN_PASSWORD) return false;
-
+  async setAdmin(discordId: string, isAdmin: boolean): Promise<UserEntity> {
     const user = await this.userRepository.findByDiscordId(discordId);
-    if (user) {
-      await this.userRepository.update(discordId, { isAdmin: true });
-    } else {
-      await this.userRepository.create({
-        discordId,
-        nickname,
-        generation: 0,
-        department: Department.Unknown,
-        isAdmin: true,
-      });
+    if (!user) {
+      throw new Error(`User not found: ${discordId}`);
     }
-    return true;
+    await this.userRepository.update(discordId, { isAdmin });
+    return { ...user, isAdmin };
   }
 
   async isAdmin(discordId: string): Promise<boolean> {

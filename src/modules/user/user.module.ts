@@ -5,6 +5,7 @@ import { TeamEntity } from './entities/team.entity';
 import { UserRepository } from './repositories/user.repository';
 import { TeamRepository } from './repositories/team.repository';
 import { UserService } from './user.service';
+import { UserScheduler } from './user.scheduler';
 import { AdminGuard } from './admin.guard';
 import { UserCommands } from './user.commands';
 
@@ -14,6 +15,7 @@ import { UserCommands } from './user.commands';
     UserRepository,
     TeamRepository,
     UserService,
+    UserScheduler,
     AdminGuard,
     UserCommands,
   ],

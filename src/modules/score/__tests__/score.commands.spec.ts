@@ -116,16 +116,16 @@ describe('ScoreCommands', () => {
     });
   });
 
-  describe('/score-reset', () => {
-    it('모든 점수와 팀을 초기화한다', async () => {
+  describe('/시즌-종료', () => {
+    it('시즌을 종료하고 모든 점수와 팀을 초기화한다', async () => {
       const interaction = createInteraction();
 
-      await commands.onScoreReset([interaction] as never);
+      await commands.onSeasonEnd([interaction] as never);
 
       expect(mockScoreService.resetAll).toHaveBeenCalled();
       expect(interaction.reply).toHaveBeenCalledWith(
         expect.objectContaining({
-          content: expect.stringContaining('초기화') as string,
+          content: expect.stringContaining('시즌이 종료') as string,
         }),
       );
     });

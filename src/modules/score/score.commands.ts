@@ -56,15 +56,15 @@ export class ScoreCommands {
 
   @UseGuards(AdminGuard)
   @SlashCommand({
-    name: 'score-reset',
-    description: '모든 점수와 팀을 초기화합니다. (관리자 전용, 시즌 종료용)',
+    name: '시즌-종료',
+    description: '시즌을 종료하고 모든 점수와 팀을 초기화합니다. (관리자 전용)',
   })
-  async onScoreReset(
+  async onSeasonEnd(
     @Context() [interaction]: SlashCommandContext,
   ): Promise<void> {
     await this.scoreService.resetAll();
     await interaction.reply({
-      content: '모든 점수와 팀이 초기화되었습니다.',
+      content: '시즌이 종료되었습니다. 모든 점수와 팀이 초기화되었습니다.',
     });
   }
 }

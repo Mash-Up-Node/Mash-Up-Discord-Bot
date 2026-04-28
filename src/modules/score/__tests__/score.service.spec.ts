@@ -2,22 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { ScoreService } from '../score.service';
 import { UserRepository } from '../../user/repositories/user.repository';
-import { TeamRepository } from '../../user/repositories/team.repository';
 import { Department } from '../../user/user.constants';
 import { UserEntity } from '../../user/entities/user.entity';
-import { TeamEntity } from '../../user/entities/team.entity';
 
 describe('ScoreService', () => {
   let service: ScoreService;
   let mockUserRepo: Record<string, jest.Mock>;
-  let mockTeamRepo: Record<string, jest.Mock>;
   let mockDataSource: { transaction: jest.Mock };
-  let mockManager: {
-    getRepository: jest.Mock;
-    createQueryBuilder: jest.Mock;
-  };
-  let mockTeamRepoTx: Record<string, jest.Mock>;
-  let mockUserRepoTx: Record<string, jest.Mock>;
+  let mockManager: { createQueryBuilder: jest.Mock };
 
   const mockUser: UserEntity = {
     discordId: 'user-1',
@@ -30,30 +22,11 @@ describe('ScoreService', () => {
     score: 0,
   };
 
-  const mockTeam: TeamEntity = {
-    id: 1,
-    name: '1조',
-    members: [],
-  };
-
   beforeEach(async () => {
     mockUserRepo = {
       findByDiscordId: jest.fn(),
       addScore: jest.fn(),
       getTeamRanking: jest.fn(),
-    };
-
-    mockTeamRepo = {
-      findAllWithMembers: jest.fn(),
-    };
-
-    mockTeamRepoTx = {
-      create: jest.fn((data) => data),
-      save: jest.fn(),
-      findOne: jest.fn(),
-    };
-    mockUserRepoTx = {
-      update: jest.fn(),
     };
 
     const queryBuilderUpdate = {
@@ -68,11 +41,6 @@ describe('ScoreService', () => {
     };
 
     mockManager = {
-      getRepository: jest.fn((entity) => {
-        if (entity === TeamEntity) return mockTeamRepoTx;
-        if (entity === UserEntity) return mockUserRepoTx;
-        return null;
-      }),
       createQueryBuilder: jest
         .fn()
         .mockReturnValueOnce(queryBuilderUpdate)
@@ -89,7 +57,6 @@ describe('ScoreService', () => {
       providers: [
         ScoreService,
         { provide: UserRepository, useValue: mockUserRepo },
-        { provide: TeamRepository, useValue: mockTeamRepo },
         { provide: DataSource, useValue: mockDataSource },
       ],
     }).compile();
@@ -132,43 +99,6 @@ describe('ScoreService', () => {
       const result = await service.getTeamRanking();
 
       expect(result).toEqual(ranking);
-    });
-  });
-
-  describe('getTeamList', () => {
-    it('팀 목록을 멤버와 함께 반환한다', async () => {
-      mockTeamRepo.findAllWithMembers.mockResolvedValue([mockTeam]);
-
-      const result = await service.getTeamList();
-
-      expect(result).toEqual([mockTeam]);
-    });
-  });
-
-  describe('buildTeam', () => {
-    it('트랜잭션 안에서 팀을 생성하고 멤버를 배정한다', async () => {
-      const teamWithMembers = { ...mockTeam, members: [mockUser] };
-      mockTeamRepoTx.save.mockResolvedValue(mockTeam);
-      mockTeamRepoTx.findOne.mockResolvedValue(teamWithMembers);
-
-      const result = await service.buildTeam('1조', ['user-1']);
-
-      expect(mockDataSource.transaction).toHaveBeenCalled();
-      expect(mockTeamRepoTx.save).toHaveBeenCalledWith({ name: '1조' });
-      expect(mockUserRepoTx.update).toHaveBeenCalledWith(
-        expect.objectContaining({ discordId: expect.anything() }),
-        { teamId: 1 },
-      );
-      expect(result.members).toHaveLength(1);
-    });
-
-    it('멤버가 없으면 user 업데이트를 호출하지 않는다', async () => {
-      mockTeamRepoTx.save.mockResolvedValue(mockTeam);
-      mockTeamRepoTx.findOne.mockResolvedValue(mockTeam);
-
-      await service.buildTeam('1조', []);
-
-      expect(mockUserRepoTx.update).not.toHaveBeenCalled();
     });
   });
 

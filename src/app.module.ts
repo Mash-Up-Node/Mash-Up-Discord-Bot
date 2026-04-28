@@ -26,6 +26,7 @@ import { TicketacoModule } from './modules/ticketaco/ticketaco.module';
         token: config.getOrThrow<string>('DISCORD_TOKEN'),
         intents: [
           IntentsBitField.Flags.Guilds,
+          IntentsBitField.Flags.GuildMembers,
           IntentsBitField.Flags.GuildMessages,
           IntentsBitField.Flags.MessageContent,
           IntentsBitField.Flags.GuildVoiceStates,

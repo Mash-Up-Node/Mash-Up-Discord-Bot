@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { DataSource, In } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
-import {
-  Department,
-  DEPARTMENT_REGEX,
-  ADMIN_PASSWORD,
-  SyncResult,
-} from './user.constants';
+import { TeamEntity } from './entities/team.entity';
+import { Department, DEPARTMENT_REGEX, SyncResult } from './user.constants';
 import { UserRepository } from './repositories/user.repository';
+import { TeamRepository } from './repositories/team.repository';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly teamRepository: TeamRepository,
+    private readonly dataSource: DataSource,
+  ) {}
 
   async findByDiscordId(discordId: string): Promise<UserEntity | null> {
     return this.userRepository.findByDiscordId(discordId);
@@ -81,30 +83,40 @@ export class UserService {
     });
   }
 
-  async adminLogin(
-    discordId: string,
-    nickname: string,
-    password: string,
-  ): Promise<boolean> {
-    if (password !== ADMIN_PASSWORD) return false;
-
+  async setAdmin(discordId: string, isAdmin: boolean): Promise<UserEntity> {
     const user = await this.userRepository.findByDiscordId(discordId);
-    if (user) {
-      await this.userRepository.update(discordId, { isAdmin: true });
-    } else {
-      await this.userRepository.create({
-        discordId,
-        nickname,
-        generation: 0,
-        department: Department.Unknown,
-        isAdmin: true,
-      });
+    if (!user) {
+      throw new Error(`User not found: ${discordId}`);
     }
-    return true;
+    await this.userRepository.update(discordId, { isAdmin });
+    return { ...user, isAdmin };
   }
 
   async isAdmin(discordId: string): Promise<boolean> {
     const user = await this.userRepository.findByDiscordId(discordId);
     return user?.isAdmin ?? false;
+  }
+
+  async getTeamList(): Promise<TeamEntity[]> {
+    return this.teamRepository.findAllWithMembers();
+  }
+
+  async buildTeam(name: string, memberIds: string[]): Promise<TeamEntity> {
+    return this.dataSource.transaction(async (manager) => {
+      const teamRepo = manager.getRepository(TeamEntity);
+      const userRepo = manager.getRepository(UserEntity);
+
+      const team = await teamRepo.save(teamRepo.create({ name }));
+      if (memberIds.length > 0) {
+        await userRepo.update(
+          { discordId: In(memberIds) },
+          { teamId: team.id },
+        );
+      }
+      return (await teamRepo.findOne({
+        where: { id: team.id },
+        relations: ['members'],
+      })) as TeamEntity;
+    });
   }
 }

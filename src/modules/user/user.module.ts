@@ -5,10 +5,20 @@ import { TeamEntity } from './entities/team.entity';
 import { UserRepository } from './repositories/user.repository';
 import { TeamRepository } from './repositories/team.repository';
 import { UserService } from './user.service';
+import { UserScheduler } from './user.scheduler';
+import { AdminGuard } from './admin.guard';
+import { UserCommands } from './user.commands';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity, TeamEntity])],
-  providers: [UserRepository, TeamRepository, UserService],
-  exports: [UserRepository, TeamRepository, UserService],
+  providers: [
+    UserRepository,
+    TeamRepository,
+    UserService,
+    UserScheduler,
+    AdminGuard,
+    UserCommands,
+  ],
+  exports: [UserRepository, TeamRepository, UserService, AdminGuard],
 })
 export class UserModule {}

@@ -58,6 +58,6 @@ describe('semantle-message.formatter', () => {
 
     expect(content).toContain('# 꼬맨틀 #1485');
     expect(content).toContain('가장 유사한 단어의 유사도: 50.66');
-    expect(content).toContain('/꼬맨틀 word:사람');
+    expect(content).toContain('/꼬맨틀 word:단어');
   });
 });

@@ -24,7 +24,7 @@ export function formatSemantleThreadIntro(
     `- 10번째 단어 유사도: ${formatSemantleScore(today['10th_score'])}`,
     `- 1,000번째 단어 유사도: ${formatSemantleScore(today['1000th_score'])}`,
     '',
-    '추측 방법: 이 스레드에서 `/꼬맨틀 word:사람`을 입력하세요.',
+    '추측 방법: 이 스레드에서 `/꼬맨틀 word:단어`을 입력하세요.',
     '정답을 맞힌 뒤에도 계속 추측할 수 있습니다.',
   ].join('\n');
 }

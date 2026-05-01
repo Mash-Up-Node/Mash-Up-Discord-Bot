@@ -1,29 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseGuards } from '@nestjs/common';
 import { MessageFlags } from 'discord.js';
 import { Context, Options, SlashCommand, SlashCommandContext } from 'necord';
 import { CategoryService } from './category.service';
 import { CategoryAddDto } from './dto/category-add.dto';
+import { AdminGuard } from '../user/admin.guard';
 
 @Injectable()
 export class CategoryCommands {
   constructor(private readonly categoryService: CategoryService) {}
 
+  @UseGuards(AdminGuard)
   @SlashCommand({
     name: '카테고리추가',
-    description: '공부 시간 추적 대상 카테고리를 추가합니다.',
+    description: '공부 시간 추적 대상 카테고리를 추가합니다. (관리자 전용)',
   })
   async onAdd(
     @Context() [interaction]: SlashCommandContext,
     @Options() dto: CategoryAddDto,
   ): Promise<void> {
-    if (!interaction.memberPermissions?.has('Administrator')) {
-      await interaction.reply({
-        content: '관리자만 사용할 수 있는 커맨드입니다.',
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
-
     const { id, name } = dto.category;
     const added = await this.categoryService.add(id, name);
 

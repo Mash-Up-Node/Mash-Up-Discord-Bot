@@ -13,11 +13,13 @@ import { StudyCommands } from './study.commands';
 import { CategoryService } from './category.service';
 import { CategoryCommands } from './category.commands';
 import { ScoreModule } from '../score/score.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([StudySessionEntity, CategoryEntity]),
     ScoreModule,
+    UserModule,
   ],
   providers: [
     {

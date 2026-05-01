@@ -1,11 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Logger } from '@nestjs/common';
 import { StudyService } from '../study.service';
 import { STUDY_SESSION_REPOSITORY } from '../repositories/study-session.repository';
 import { StudySession } from '../entities/study-session.entity';
+import { ScoreService } from '../../score/score.service';
 
 describe('StudyService', () => {
   let service: StudyService;
   let mockRepo: Record<string, jest.Mock>;
+  let mockScoreService: { addScore: jest.Mock };
 
   const mockSession: StudySession = {
     id: 'session-1',
@@ -27,10 +30,15 @@ describe('StudyService', () => {
       getLeaderboard: jest.fn(),
     };
 
+    mockScoreService = {
+      addScore: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StudyService,
         { provide: STUDY_SESSION_REPOSITORY, useValue: mockRepo },
+        { provide: ScoreService, useValue: mockScoreService },
       ],
     }).compile();
 
@@ -85,6 +93,67 @@ describe('StudyService', () => {
 
       expect(result).toBeNull();
     });
+
+    it('duration 1분당 10점을 적립한다', async () => {
+      mockRepo.endSession.mockResolvedValue({
+        ...mockSession,
+        leftAt: new Date(),
+        duration: 120,
+      });
+
+      await service.handleLeave('user-1');
+
+      expect(mockScoreService.addScore).toHaveBeenCalledWith('user-1', 20);
+    });
+
+    it('1분 미만 세션은 점수를 적립하지 않는다', async () => {
+      mockRepo.endSession.mockResolvedValue({
+        ...mockSession,
+        leftAt: new Date(),
+        duration: 30,
+      });
+
+      await service.handleLeave('user-1');
+
+      expect(mockScoreService.addScore).not.toHaveBeenCalled();
+    });
+
+    it('endSession이 null을 반환하면 점수를 적립하지 않는다', async () => {
+      mockRepo.endSession.mockResolvedValue(null);
+
+      await service.handleLeave('user-1');
+
+      expect(mockScoreService.addScore).not.toHaveBeenCalled();
+    });
+
+    it('duration이 null이면 점수를 적립하지 않는다', async () => {
+      mockRepo.endSession.mockResolvedValue({
+        ...mockSession,
+        leftAt: new Date(),
+        duration: null,
+      });
+
+      await service.handleLeave('user-1');
+
+      expect(mockScoreService.addScore).not.toHaveBeenCalled();
+    });
+
+    it('addScore가 throw해도 예외를 흡수하고 정상 종료한다', async () => {
+      const endedSession = {
+        ...mockSession,
+        leftAt: new Date(),
+        duration: 600,
+      };
+      mockRepo.endSession.mockResolvedValue(endedSession);
+      mockScoreService.addScore.mockRejectedValue(new Error('DB down'));
+      const warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+
+      const result = await service.handleLeave('user-1');
+
+      expect(result).toEqual(endedSession);
+      expect(warnSpy).toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
   });
 
   describe('handleMove', () => {
@@ -112,6 +181,34 @@ describe('StudyService', () => {
         'cat-2',
       );
       expect(result).toEqual(newSession);
+    });
+
+    it('이동 시 종료된 세션의 점수를 적립한다', async () => {
+      mockRepo.endSession.mockResolvedValue({
+        ...mockSession,
+        leftAt: new Date(),
+        duration: 600,
+      });
+      mockRepo.createSession.mockResolvedValue(mockSession);
+
+      await service.handleMove('user-1', 'channel-2', 'cat-2');
+
+      expect(mockScoreService.addScore).toHaveBeenCalledWith('user-1', 100);
+      expect(mockRepo.createSession).toHaveBeenCalled();
+    });
+
+    it('활성 세션이 없으면 점수 적립 없이 새 세션만 생성한다', async () => {
+      mockRepo.endSession.mockResolvedValue(null);
+      mockRepo.createSession.mockResolvedValue(mockSession);
+
+      await service.handleMove('user-1', 'channel-2', 'cat-2');
+
+      expect(mockScoreService.addScore).not.toHaveBeenCalled();
+      expect(mockRepo.createSession).toHaveBeenCalledWith(
+        'user-1',
+        'channel-2',
+        'cat-2',
+      );
     });
   });
 

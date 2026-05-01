@@ -12,9 +12,13 @@ import { StudyListener } from './study.listener';
 import { StudyCommands } from './study.commands';
 import { CategoryService } from './category.service';
 import { CategoryCommands } from './category.commands';
+import { ScoreModule } from '../score/score.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([StudySessionEntity, CategoryEntity])],
+  imports: [
+    TypeOrmModule.forFeature([StudySessionEntity, CategoryEntity]),
+    ScoreModule,
+  ],
   providers: [
     {
       provide: STUDY_SESSION_REPOSITORY,

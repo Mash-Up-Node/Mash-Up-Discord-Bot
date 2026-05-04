@@ -37,7 +37,7 @@ describe('ScoreCommands', () => {
     commands = new ScoreCommands(mockScoreService as unknown as ScoreService);
   });
 
-  describe('/my-score', () => {
+  describe('/내-점수', () => {
     it('등록된 유저의 점수와 팀을 응답한다', async () => {
       mockScoreService.getMyScore.mockResolvedValue(mockUser);
       const interaction = createInteraction();
@@ -85,7 +85,7 @@ describe('ScoreCommands', () => {
     });
   });
 
-  describe('/score-rank', () => {
+  describe('/점수-랭킹', () => {
     it('팀 랭킹을 응답한다', async () => {
       mockScoreService.getTeamRanking.mockResolvedValue([
         { teamId: 1, teamName: '1조', totalScore: 100 },

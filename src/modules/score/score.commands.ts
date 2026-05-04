@@ -8,7 +8,7 @@ export class ScoreCommands {
   constructor(private readonly scoreService: ScoreService) {}
 
   @SlashCommand({
-    name: 'my-score',
+    name: '내-점수',
     description: '내 점수와 소속 팀을 확인합니다.',
   })
   async onMyScore(
@@ -32,7 +32,7 @@ export class ScoreCommands {
   }
 
   @SlashCommand({
-    name: 'score-rank',
+    name: '점수-랭킹',
     description: '팀별 합산 점수 랭킹을 확인합니다.',
   })
   async onScoreRank(

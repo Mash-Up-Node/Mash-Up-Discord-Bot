@@ -9,9 +9,9 @@ const HELP_TEXT = `**Mash-Up Bot 명령어 안내**
 \`/카테고리목록\` — 등록된 공부 카테고리 목록
 
 **점수 / 팀**
-\`/my-score\` — 내 점수와 소속 팀 확인
-\`/score-rank\` — 팀별 합산 점수 랭킹
-\`/team-list\` — 팀 목록과 멤버 구성
+\`/내-점수\` — 내 점수와 소속 팀 확인
+\`/점수-랭킹\` — 팀별 합산 점수 랭킹
+\`/팀-목록\` — 팀 목록과 멤버 구성
 
 **이벤트**
 \`/이벤트\` — 구독 중인 조직의 예정 이벤트 목록
@@ -30,10 +30,10 @@ const HELP_TEXT = `**Mash-Up Bot 명령어 안내**
 ———
 
 **관리자 전용**
-\`/admin-grant user:@멤버\` — 관리자 권한 부여
-\`/admin-revoke user:@멤버\` — 관리자 권한 해제
-\`/register-member user: department: generation:\` — 멤버 수동 등록/수정
-\`/team-build name: members:\` — 팀 생성 및 멤버 배정
+\`/관리자-부여 user:@멤버\` — 관리자 권한 부여
+\`/관리자-해제 user:@멤버\` — 관리자 권한 해제
+\`/멤버-등록 user: department: generation:\` — 멤버 수동 등록/수정
+\`/팀-생성 name: members:\` — 팀 생성 및 멤버 배정
 \`/카테고리추가 category:\` — 공부 카테고리 추가
 \`/시즌-종료\` — 시즌 종료 (모든 점수·팀 초기화)`;
 

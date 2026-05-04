@@ -37,7 +37,7 @@ describe('UserCommands', () => {
     commands = new UserCommands(mockUserService as unknown as UserService);
   });
 
-  describe('/admin-grant', () => {
+  describe('/관리자-부여', () => {
     it('동기화되지 않은 유저는 안내 메시지를 보낸다', async () => {
       mockUserService.findByDiscordId.mockResolvedValue(null);
       const interaction = createInteraction();
@@ -87,7 +87,7 @@ describe('UserCommands', () => {
     });
   });
 
-  describe('/admin-revoke', () => {
+  describe('/관리자-해제', () => {
     it('등록되지 않은 유저는 안내 메시지를 보낸다', async () => {
       mockUserService.findByDiscordId.mockResolvedValue(null);
       const interaction = createInteraction();
@@ -137,7 +137,7 @@ describe('UserCommands', () => {
     });
   });
 
-  describe('/register-member', () => {
+  describe('/멤버-등록', () => {
     it('등록한 멤버 정보를 ephemeral로 응답한다', async () => {
       const targetUser = { id: 'user-2', displayName: '김철수' };
       const interaction = createInteraction();
@@ -172,7 +172,7 @@ describe('UserCommands', () => {
     });
   });
 
-  describe('/team-list', () => {
+  describe('/팀-목록', () => {
     it('팀이 없으면 안내 메시지를 보낸다', async () => {
       mockUserService.getTeamList.mockResolvedValue([]);
       const interaction = createInteraction();
@@ -226,7 +226,7 @@ describe('UserCommands', () => {
     });
   });
 
-  describe('/team-build', () => {
+  describe('/팀-생성', () => {
     it('멤버 멘션이 없으면 안내 메시지를 보낸다', async () => {
       const interaction = createInteraction();
       const dto: TeamBuildDto = { name: '1조', members: '멤버없음' };

@@ -14,7 +14,7 @@ export class UserCommands {
 
   @UseGuards(AdminGuard)
   @SlashCommand({
-    name: 'admin-grant',
+    name: '관리자-부여',
     description: '대상 유저에게 관리자 권한을 부여합니다. (관리자 전용)',
   })
   async onAdminGrant(
@@ -47,7 +47,7 @@ export class UserCommands {
 
   @UseGuards(AdminGuard)
   @SlashCommand({
-    name: 'admin-revoke',
+    name: '관리자-해제',
     description: '대상 유저의 관리자 권한을 해제합니다. (관리자 전용)',
   })
   async onAdminRevoke(
@@ -80,7 +80,7 @@ export class UserCommands {
 
   @UseGuards(AdminGuard)
   @SlashCommand({
-    name: 'register-member',
+    name: '멤버-등록',
     description: '멤버 정보를 수동으로 등록/수정합니다. (관리자 전용)',
   })
   async onRegisterMember(
@@ -107,7 +107,7 @@ export class UserCommands {
   }
 
   @SlashCommand({
-    name: 'team-list',
+    name: '팀-목록',
     description: '팀 목록과 멤버 구성을 확인합니다.',
   })
   async onTeamList(
@@ -132,7 +132,7 @@ export class UserCommands {
 
   @UseGuards(AdminGuard)
   @SlashCommand({
-    name: 'team-build',
+    name: '팀-생성',
     description: '팀을 생성하고 멤버를 배정합니다. (관리자 전용)',
   })
   async onTeamBuild(

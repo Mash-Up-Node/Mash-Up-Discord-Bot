@@ -210,4 +210,118 @@ describe('StudyCommands', () => {
       );
     });
   });
+
+  describe('/팀공부순위', () => {
+    function createMockInteractionWithChannel(
+      channel: Record<string, unknown> | null,
+    ) {
+      return {
+        ...createMockInteraction(),
+        channel,
+      };
+    }
+
+    it('카테고리에 속하지 않은 채널이면 안내 메시지를 보낸다', async () => {
+      const interaction = createMockInteractionWithChannel({
+        parentId: null,
+      });
+
+      await commands.onTeamLeaderboard([interaction] as never);
+
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('팀 카테고리 내 채널') as string,
+        }),
+      );
+    });
+
+    it('channel이 null이면 안내 메시지를 보낸다', async () => {
+      const interaction = createMockInteractionWithChannel(null);
+
+      await commands.onTeamLeaderboard([interaction] as never);
+
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('팀 카테고리 내 채널') as string,
+        }),
+      );
+    });
+
+    it('등록되지 않은 공부 카테고리면 안내 메시지를 보낸다', async () => {
+      mockCategoryService.has.mockReturnValue(false);
+      const interaction = createMockInteractionWithChannel({
+        parentId: 'cat-unknown',
+      });
+
+      await commands.onTeamLeaderboard([interaction] as never);
+
+      expect(mockCategoryService.has).toHaveBeenCalledWith('cat-unknown');
+      expect(mockService.getLeaderboard).not.toHaveBeenCalled();
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining(
+            '등록된 공부 카테고리가 아닙니다',
+          ) as string,
+        }),
+      );
+    });
+
+    it('기록이 없으면 안내 메시지를 보낸다', async () => {
+      mockCategoryService.has.mockReturnValue(true);
+      mockService.getLeaderboard.mockResolvedValue([]);
+      const interaction = createMockInteractionWithChannel({
+        parentId: 'cat-1',
+      });
+
+      await commands.onTeamLeaderboard([interaction] as never);
+
+      expect(mockService.getLeaderboard).toHaveBeenCalledWith(
+        expect.any(Number),
+        'cat-1',
+      );
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('공부 기록이 없') as string,
+        }),
+      );
+    });
+
+    it('카테고리명과 함께 순위표를 표시한다', async () => {
+      mockCategoryService.has.mockReturnValue(true);
+      mockService.getLeaderboard.mockResolvedValue([
+        { userId: 'user-1', total: 7200 },
+      ]);
+      const interaction = createMockInteractionWithChannel({
+        parentId: 'cat-1',
+        parent: { name: '1조' },
+      });
+
+      await commands.onTeamLeaderboard([interaction] as never);
+
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('1조 공부 시간 순위표') as string,
+        }),
+      );
+    });
+
+    it('parent가 없으면 기본 제목으로 표시한다', async () => {
+      mockCategoryService.has.mockReturnValue(true);
+      mockService.getLeaderboard.mockResolvedValue([
+        { userId: 'user-1', total: 3600 },
+      ]);
+      const interaction = createMockInteractionWithChannel({
+        parentId: 'cat-1',
+        parent: null,
+      });
+
+      await commands.onTeamLeaderboard([interaction] as never);
+
+      expect(interaction.reply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.stringContaining('팀 공부 시간 순위표') as string,
+        }),
+      );
+    });
+  });
 });

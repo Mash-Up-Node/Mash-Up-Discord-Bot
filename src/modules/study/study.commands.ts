@@ -124,6 +124,66 @@ export class StudyCommands {
       content: `${title}\n${lines.join('\n')}`,
     });
   }
+
+  @SlashCommand({
+    name: '팀공부순위',
+    description:
+      '현재 채널이 속한 팀(카테고리)의 공부 시간 순위를 조회합니다.',
+  })
+  async onTeamLeaderboard(
+    @Context() [interaction]: SlashCommandContext,
+  ): Promise<void> {
+    const channel = interaction.channel;
+    const parentId =
+      channel && 'parentId' in channel ? channel.parentId : null;
+
+    if (!parentId) {
+      await interaction.reply({
+        content:
+          '팀 카테고리 내 채널에서 사용해주세요.',
+      });
+      return;
+    }
+
+    if (!this.categoryService.has(parentId)) {
+      await interaction.reply({
+        content: '이 카테고리는 등록된 공부 카테고리가 아닙니다.',
+      });
+      return;
+    }
+
+    const leaderboard = await this.studyService.getLeaderboard(
+      LEADERBOARD_LIMIT,
+      parentId,
+    );
+
+    if (leaderboard.length === 0) {
+      await interaction.reply({
+        content: '아직 이 카테고리의 공부 기록이 없습니다.',
+      });
+      return;
+    }
+
+    const guild = interaction.guild;
+    const lines = await Promise.all(
+      leaderboard.map(async (entry, index) => {
+        const member = guild
+          ? await guild.members.fetch(entry.userId).catch(() => null)
+          : null;
+        const name = member?.displayName ?? `<@${entry.userId}>`;
+        return `${index + 1}. ${name} — ${formatDuration(entry.total)}`;
+      }),
+    );
+
+    const categoryName =
+      channel && 'parent' in channel && channel.parent
+        ? channel.parent.name
+        : '팀';
+
+    await interaction.reply({
+      content: `**${categoryName} 공부 시간 순위표**\n${lines.join('\n')}`,
+    });
+  }
 }
 
 function formatScope(category?: CategoryChannel): string {

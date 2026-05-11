@@ -12,6 +12,7 @@ import { TicketacoOrganizationEntity } from '../modules/ticketaco/entities/ticke
 import { TicketacoSubscriptionEntity } from '../modules/ticketaco/entities/ticketaco-subscription.entity';
 import { ChannelReservationEntity } from '../modules/reservation/entities/channel-reservation.entity';
 import { ReservationNotificationEntity } from '../modules/reservation/entities/reservation-notification.entity';
+import { FortuneSubscriptionEntity } from '../modules/today/entities/fortune-subscription.entity';
 import { DATABASE_ERRORS } from '../constants/error-messages';
 
 const entities = [
@@ -26,6 +27,7 @@ const entities = [
   TicketacoEventEntity,
   TicketacoOrganizationEntity,
   TicketacoSubscriptionEntity,
+  FortuneSubscriptionEntity,
 ];
 
 const dataSourceOptions: Record<

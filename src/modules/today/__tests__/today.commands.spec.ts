@@ -165,13 +165,15 @@ describe('TodayCommands', () => {
     });
     const interaction = createMockInteraction();
     const dto = new TodayFortuneQueryDto();
-    dto.input = '남자,2025-05-18';
+    dto.gender = 'male';
+    dto.birthDate = '2025-05-18';
 
     await commands.onTodayFortune([interaction] as never, dto);
 
     expect(interaction.deferReply).toHaveBeenCalled();
     expect(fortuneService.getTodayFortune).toHaveBeenCalledWith(
-      '남자,2025-05-18',
+      'male',
+      '2025-05-18',
     );
     expect(weatherService.getTodaySummary).not.toHaveBeenCalled();
     expect(interaction.editReply).toHaveBeenCalledWith(
@@ -191,13 +193,15 @@ describe('TodayCommands', () => {
     });
     const interaction = createMockInteraction();
     const dto = new TodayFortuneQueryDto();
-    dto.input = '남자,2025-05-18';
+    dto.gender = 'male';
+    dto.birthDate = '2025-05-18';
 
     await commands.onTomorrowFortune([interaction] as never, dto);
 
     expect(interaction.deferReply).toHaveBeenCalled();
     expect(fortuneService.getTomorrowFortune).toHaveBeenCalledWith(
-      '남자,2025-05-18',
+      'male',
+      '2025-05-18',
     );
     expect(fortuneService.getTodayFortune).not.toHaveBeenCalled();
     expect(weatherService.getTodaySummary).not.toHaveBeenCalled();

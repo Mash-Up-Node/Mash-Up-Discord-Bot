@@ -1,10 +1,23 @@
 import { StringOption } from 'necord';
 
+export type FortuneGenderInput = 'male' | 'female';
+
 export class TodayFortuneQueryDto {
   @StringOption({
-    name: '입력',
-    description: '형식: 남자,2025-05-18',
+    name: '성별',
+    description: '본인의 성별을 선택해주세요',
+    required: true,
+    choices: [
+      { name: '남자', value: 'male' },
+      { name: '여자', value: 'female' },
+    ],
+  })
+  gender!: FortuneGenderInput;
+
+  @StringOption({
+    name: '생년월일',
+    description: 'YYYY-MM-DD 형식으로 입력 (예: 1995-05-18)',
     required: true,
   })
-  input!: string;
+  birthDate!: string;
 }

@@ -1,10 +1,7 @@
 import { FORTUNE_QUERIES, FortuneQuery } from '../constants/today.constants';
-import {
-  INVALID_BIRTH_DATE,
-  INVALID_FORTUNE_INPUT,
-  INVALID_GENDER,
-} from '../constants/today.messages';
+import { INVALID_BIRTH_DATE } from '../constants/today.messages';
 import { NaverFortuneResponse } from '../clients/types/today-api.type';
+import { FortuneGenderInput } from '../dto/today-fortune-query.dto';
 import { TodayFortune } from '../types/today-fortune.type';
 
 export interface ParsedFortuneInput {
@@ -14,18 +11,13 @@ export interface ParsedFortuneInput {
   birthDateCompact: string;
 }
 
-const GENDER_MAP = new Map<string, { code: 'm' | 'f'; label: '남자' | '여자' }>(
-  [
-    ['남자', { code: 'm', label: '남자' }],
-    ['남', { code: 'm', label: '남자' }],
-    ['m', { code: 'm', label: '남자' }],
-    ['male', { code: 'm', label: '남자' }],
-    ['여자', { code: 'f', label: '여자' }],
-    ['여', { code: 'f', label: '여자' }],
-    ['f', { code: 'f', label: '여자' }],
-    ['female', { code: 'f', label: '여자' }],
-  ],
-);
+const GENDER_MAP: Record<
+  FortuneGenderInput,
+  { code: 'm' | 'f'; label: '남자' | '여자' }
+> = {
+  male: { code: 'm', label: '남자' },
+  female: { code: 'f', label: '여자' },
+};
 
 function stripHtml(input: string): string {
   return input
@@ -39,30 +31,21 @@ function stripHtml(input: string): string {
     .trim();
 }
 
-export function parseFortuneInput(rawInput: string): ParsedFortuneInput {
-  const [rawGender, rawBirthDate] = rawInput
-    .split(',')
-    .map((value) => value.trim());
-
-  if (!rawGender || !rawBirthDate) {
-    throw new Error(INVALID_FORTUNE_INPUT);
-  }
-
-  const gender = GENDER_MAP.get(rawGender.toLowerCase());
-
-  if (!gender) {
-    throw new Error(INVALID_GENDER);
-  }
-
-  const birthDateCompact = rawBirthDate.replace(/-/g, '');
+export function buildFortuneInput(
+  gender: FortuneGenderInput,
+  rawBirthDate: string,
+): ParsedFortuneInput {
+  const birthDateCompact = rawBirthDate.trim().replace(/-/g, '');
 
   if (!/^\d{8}$/.test(birthDateCompact)) {
     throw new Error(INVALID_BIRTH_DATE);
   }
 
+  const { code, label } = GENDER_MAP[gender];
+
   return {
-    genderCode: gender.code,
-    genderLabel: gender.label,
+    genderCode: code,
+    genderLabel: label,
     birthDate: `${birthDateCompact.slice(0, 4)}-${birthDateCompact.slice(4, 6)}-${birthDateCompact.slice(6, 8)}`,
     birthDateCompact,
   };

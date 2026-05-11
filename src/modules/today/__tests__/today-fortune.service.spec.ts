@@ -2,7 +2,7 @@ import { TodayFortuneClient } from '../clients/today-fortune.client';
 import { FORTUNE_QUERIES } from '../constants/today.constants';
 import {
   createFortuneFetchFailedMessage,
-  INVALID_FORTUNE_INPUT,
+  INVALID_BIRTH_DATE,
 } from '../constants/today.messages';
 import { TodayFortuneService } from '../services/today-fortune.service';
 
@@ -30,10 +30,10 @@ describe('TodayFortuneService', () => {
     global.fetch = originalFetch;
   });
 
-  it('운세 입력을 파싱해 오늘 운세를 반환한다', async () => {
+  it('성별/생년월일 입력으로 오늘 운세를 반환한다', async () => {
     fortuneClient.fetchFortuneResponse.mockResolvedValue(FORTUNE_JSONP_RESPONSE);
 
-    const result = await service.getTodayFortune('남자,2025-05-18');
+    const result = await service.getTodayFortune('male', '2025-05-18');
 
     expect(fortuneClient.fetchFortuneResponse).toHaveBeenCalledWith(
       FORTUNE_QUERIES.TODAY,
@@ -53,16 +53,16 @@ describe('TodayFortuneService', () => {
     });
   });
 
-  it('운세 입력을 파싱해 내일 운세를 반환한다', async () => {
+  it('성별/생년월일 입력으로 내일 운세를 반환한다', async () => {
     fortuneClient.fetchFortuneResponse.mockResolvedValue(FORTUNE_JSONP_RESPONSE);
 
-    const result = await service.getTomorrowFortune('남자,2025-05-18');
+    const result = await service.getTomorrowFortune('female', '2025-05-18');
 
     expect(fortuneClient.fetchFortuneResponse).toHaveBeenCalledWith(
       FORTUNE_QUERIES.TOMORROW,
       {
-        genderCode: 'm',
-        genderLabel: '남자',
+        genderCode: 'f',
+        genderLabel: '여자',
         birthDate: '2025-05-18',
         birthDateCompact: '20250518',
       },
@@ -71,15 +71,15 @@ describe('TodayFortuneService', () => {
       keyword: '순망치한',
       date: '2026.04.06',
       summary: '말과 행동이 일치하도록 노력할 필요가 있는 날입니다.',
-      gender: '남자',
+      gender: '여자',
       birthDate: '2025-05-18',
     });
   });
 
-  it('운세 입력 형식이 잘못되면 클라이언트 호출 없이 안내 메시지를 던진다', async () => {
-    await expect(service.getTodayFortune('남자 2025-05-18')).rejects.toThrow(
-      INVALID_FORTUNE_INPUT,
-    );
+  it('생년월일 형식이 잘못되면 클라이언트 호출 없이 안내 메시지를 던진다', async () => {
+    await expect(
+      service.getTodayFortune('male', '2025/05/18'),
+    ).rejects.toThrow(INVALID_BIRTH_DATE);
 
     expect(fortuneClient.fetchFortuneResponse).not.toHaveBeenCalled();
   });
@@ -89,17 +89,17 @@ describe('TodayFortuneService', () => {
       'fortuneCallback({ "flick" : ["<div>마크업이 바뀐 응답</div>"] });',
     );
 
-    await expect(service.getTodayFortune('남자,2025-05-18')).rejects.toThrow(
-      createFortuneFetchFailedMessage(FORTUNE_QUERIES.TODAY),
-    );
+    await expect(
+      service.getTodayFortune('male', '2025-05-18'),
+    ).rejects.toThrow(createFortuneFetchFailedMessage(FORTUNE_QUERIES.TODAY));
   });
 
   it('운세 JSONP 형식이 깨지면 공통 에러 메시지로 변환한다', async () => {
     fortuneClient.fetchFortuneResponse.mockResolvedValue('{ "flick": [] }');
 
-    await expect(service.getTodayFortune('남자,2025-05-18')).rejects.toThrow(
-      createFortuneFetchFailedMessage(FORTUNE_QUERIES.TODAY),
-    );
+    await expect(
+      service.getTodayFortune('male', '2025-05-18'),
+    ).rejects.toThrow(createFortuneFetchFailedMessage(FORTUNE_QUERIES.TODAY));
   });
 
   it('내일 운세 조회 실패 시 내일 운세 에러 메시지를 던진다', async () => {
@@ -107,9 +107,9 @@ describe('TodayFortuneService', () => {
       new Error('Naver request failed: 500'),
     );
 
-    await expect(service.getTomorrowFortune('남자,2025-05-18')).rejects.toThrow(
-      createFortuneFetchFailedMessage(FORTUNE_QUERIES.TOMORROW),
-    );
+    await expect(
+      service.getTomorrowFortune('male', '2025-05-18'),
+    ).rejects.toThrow(createFortuneFetchFailedMessage(FORTUNE_QUERIES.TOMORROW));
   });
 
   const liveTest = runLiveFortuneTest ? it : it.skip;
@@ -120,7 +120,7 @@ describe('TodayFortuneService', () => {
       global.fetch = originalFetch;
 
       const liveService = new TodayFortuneService(new TodayFortuneClient());
-      const result = await liveService.getTodayFortune('남자,2025-05-18');
+      const result = await liveService.getTodayFortune('male', '2025-05-18');
 
       expect(result.gender).toBe('남자');
       expect(result.birthDate).toBe('2025-05-18');
@@ -137,7 +137,7 @@ describe('TodayFortuneService', () => {
       global.fetch = originalFetch;
 
       const liveService = new TodayFortuneService(new TodayFortuneClient());
-      const result = await liveService.getTomorrowFortune('남자,2025-05-18');
+      const result = await liveService.getTomorrowFortune('male', '2025-05-18');
 
       expect(result.gender).toBe('남자');
       expect(result.birthDate).toBe('2025-05-18');

@@ -45,7 +45,10 @@ export class TodayCommands {
     @Options() dto: TodayFortuneQueryDto,
   ): Promise<void> {
     await this.handleDeferredReply(interaction, async () => {
-      const fortune = await this.fortuneService.getTodayFortune(dto.input);
+      const fortune = await this.fortuneService.getTodayFortune(
+        dto.gender,
+        dto.birthDate,
+      );
       return formatTodayFortune(fortune);
     });
   }
@@ -59,7 +62,10 @@ export class TodayCommands {
     @Options() dto: TodayFortuneQueryDto,
   ): Promise<void> {
     await this.handleDeferredReply(interaction, async () => {
-      const fortune = await this.fortuneService.getTomorrowFortune(dto.input);
+      const fortune = await this.fortuneService.getTomorrowFortune(
+        dto.gender,
+        dto.birthDate,
+      );
       return formatTodayFortune(fortune, '내일의 운세');
     });
   }
